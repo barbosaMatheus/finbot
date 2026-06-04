@@ -1,0 +1,27 @@
+sequenceDiagram
+
+    participant U as User
+    participant M as MAUI App
+    participant A as ASP.NET API
+    participant Q as Redis Streams
+    participant E as Embedding Worker
+    participant B as BGE-M3
+    participant P as PostgreSQL
+
+    U->>M: Create note
+
+    M->>A: Save note
+
+    A->>P: Insert note
+
+    A->>Q: Publish note_created
+
+    Q->>E: Consume event
+
+    E->>B: Generate embedding
+
+    B-->>E: Vector
+
+    E->>P: Insert embedding
+
+    E->>P: Insert context_ledger entry

@@ -1,0 +1,39 @@
+flowchart TB
+
+    subgraph Frontend
+        MAUI[.NET MAUI]
+    end
+
+    subgraph API Layer
+        API[ASP.NET Core]
+    end
+
+    subgraph AI Layer
+        RAG[RAG Service]
+        LLM[LLM Service]
+        EMB[Embedding Worker]
+        SUM[Summarization Worker]
+    end
+
+    subgraph Infrastructure
+        REDIS[Redis Streams]
+        PG[(PostgreSQL + pgvector)]
+        OLLAMA[Ollama]
+    end
+
+    MAUI --> API
+
+    API --> RAG
+    API --> PG
+    API --> REDIS
+
+    RAG --> PG
+    RAG --> LLM
+
+    LLM --> OLLAMA
+
+    REDIS --> EMB
+    REDIS --> SUM
+
+    EMB --> PG
+    SUM --> PG

@@ -1,0 +1,22 @@
+flowchart LR
+
+    NOTE[User Note]
+    TXN[Transaction]
+    EMBED[Embedding Created]
+
+    LEDGER[Context Ledger]
+
+    ALLOWED[Allowed For Retrieval]
+    BLOCKED[Excluded From Retrieval]
+
+    NOTE --> EMBED
+    TXN --> EMBED
+
+    EMBED --> LEDGER
+
+    LEDGER --> ALLOWED
+    LEDGER --> BLOCKED
+
+    ALLOWED --> RAG[RAG Retrieval]
+
+    BLOCKED -. Not Searchable .-> RAG

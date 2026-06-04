@@ -1,0 +1,69 @@
+flowchart TB
+
+    User[User]
+
+    subgraph Client Layer
+        MAUI[.NET MAUI App<br/>Mobile/Web]
+    end
+
+    subgraph Backend
+        API[ASP.NET Core API]
+
+        RAG[RAG Service<br/>Python + LangChain]
+
+        LLM[LLM Service<br/>Ollama Client]
+
+        EMB[Embedding Worker]
+
+        SUM[Summarization Worker]
+    end
+
+    subgraph Messaging
+        REDIS[Redis Streams]
+    end
+
+    subgraph AI Components
+        BGE[BGE-M3<br/>Embedding Model]
+
+        GEMMA[Gemma 4<br/>via Ollama]
+    end
+
+    subgraph Data Layer
+        PG[(PostgreSQL + pgvector)]
+
+        NOTES[(notes)]
+        TXNS[(transactions)]
+        LEDGER[(context_ledger)]
+        EMBEDS[(embeddings)]
+    end
+
+    User --> MAUI
+
+    MAUI --> API
+
+    API --> RAG
+
+    API --> PG
+
+    API --> REDIS
+
+    REDIS --> EMB
+    REDIS --> SUM
+
+    EMB --> BGE
+    EMB --> PG
+
+    SUM --> PG
+
+    RAG --> PG
+
+    RAG --> BGE
+
+    RAG --> LLM
+
+    LLM --> GEMMA
+
+    PG --> NOTES
+    PG --> TXNS
+    PG --> LEDGER
+    PG --> EMBEDS
