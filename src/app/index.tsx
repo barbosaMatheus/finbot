@@ -1,3 +1,4 @@
+import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
 import * as SQLite from "expo-sqlite";
 import { useEffect, useState } from "react";
 import {
@@ -11,7 +12,7 @@ import {
 
 const db = SQLite.openDatabaseSync("finbot-db.sqlite");
 
-export default function App() {
+export default function HomeScreen() {
   const [status, setStatus] = useState("Initializing database...");
   const [query, setQuery] = useState("");
   const [result, setResult] = useState<any[]>([]);
@@ -30,6 +31,8 @@ export default function App() {
           datetime TEXT NOT NULL,
           content TEXT
         );
+        INSERT INTO ledger (action, datetime, content) VALUES ('initialize', datetime('now'), 'Database initialized');
+        INSERT INTO ledger (action, datetime, content) VALUES ('run_query', datetime('now'), 'Query run');
       `);
 
       setStatus("Database initialized successfully.");
@@ -41,10 +44,12 @@ export default function App() {
 
   const handleRunQuery = async () => {
     if (!query.trim()) {
+      setResult(["Empty query"]);
       return;
     }
 
     try {
+      setResult(["Running query..."]);
       setError(null);
       const results = await db.getAllAsync(query);
       setResult(results);
@@ -53,7 +58,6 @@ export default function App() {
       setResult([]);
     }
   };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>SQLite Query Interface</Text>
@@ -144,5 +148,30 @@ const styles = StyleSheet.create({
   },
   cell: {
     marginBottom: 5,
+  },
+  safeArea: {
+    flex: 1,
+    paddingHorizontal: Spacing.four,
+    alignItems: "center",
+    gap: Spacing.three,
+    paddingBottom: BottomTabInset + Spacing.three,
+    maxWidth: MaxContentWidth,
+  },
+  heroSection: {
+    alignItems: "center",
+    justifyContent: "center",
+    flex: 1,
+    paddingHorizontal: Spacing.four,
+    gap: Spacing.four,
+  },
+  code: {
+    textTransform: "uppercase",
+  },
+  stepContainer: {
+    gap: Spacing.three,
+    alignSelf: "stretch",
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.four,
+    borderRadius: Spacing.four,
   },
 });
