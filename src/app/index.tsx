@@ -33,6 +33,11 @@ export default function HomeScreen() {
         );
         INSERT INTO ledger (action, datetime, content) VALUES ('initialize', datetime('now'), 'Database initialized');
         INSERT INTO ledger (action, datetime, content) VALUES ('run_query', datetime('now'), 'Query run');
+        CREATE TABLE IF NOT EXISTS embeddings USING vec0 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          content TEXT NOT NULL,
+          embedding VECTOR(768) NOT NULL
+        );
       `);
 
       setStatus("Database initialized successfully.");
