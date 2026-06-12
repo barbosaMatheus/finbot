@@ -1,3 +1,3 @@
 npx expo prebuild
-cd android
+Set-Location android
 ./gradlew installDebug
