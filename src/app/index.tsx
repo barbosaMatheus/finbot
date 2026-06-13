@@ -24,6 +24,11 @@ export default function HomeScreen() {
 
   const initializeDatabase = async () => {
     try {
+      const extension = SQLite.bundledExtensions["sqlite-vec"];
+      if (extension) {
+        await db.loadExtensionAsync(extension.libPath, extension.entryPoint);
+      }
+
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS ledger (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,11 +38,7 @@ export default function HomeScreen() {
         );
         INSERT INTO ledger (action, datetime, content) VALUES ('initialize', datetime('now'), 'Database initialized');
         INSERT INTO ledger (action, datetime, content) VALUES ('run_query', datetime('now'), 'Query run');
-        CREATE TABLE IF NOT EXISTS embeddings USING vec0 (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          content TEXT NOT NULL,
-          embedding VECTOR(768) NOT NULL
-        );
+        CREATE VIRTUAL TABLE IF NOT EXISTS embeddings USING vec0 (embedding float[768]);
       `);
 
       setStatus("Database initialized successfully.");
