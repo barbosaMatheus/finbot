@@ -67,3 +67,4 @@ export function chunkText(
     return [];
   }
 }
+export default chunkText;
