@@ -41,6 +41,8 @@
   "scripts": {
     "test": "jest --passWithNoTests",
     "start": "expo start",
+    "build android": "eas build --platform android --profile development",
+    "build ios": "eas build --platform ios --profile development",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
