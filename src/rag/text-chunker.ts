@@ -31,6 +31,14 @@ export function chunkText(
       throw new Error("Invalid chunker configuration values.");
     }
 
+    if (overlap >= maxChunkSize) {
+      throw new Error("Overlap must be smaller than maxChunkSize.");
+    }
+
+    if (minChunkSize > maxChunkSize) {
+      throw new Error("minChunkSize must not exceed maxChunkSize.");
+    }
+
     if (input.trim().length === 0) {
       return [];
     }
@@ -57,8 +65,12 @@ export function chunkText(
         end: end,
       });
 
-      // Move forward with overlap
-      position = end - overlap;
+      if (end === input.length) {
+        break;
+      }
+
+      const nextPosition = end - overlap;
+      position = nextPosition > position ? nextPosition : end;
     }
 
     return chunks;

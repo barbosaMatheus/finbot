@@ -33,8 +33,8 @@ test("chunkText respects maxChunkSize and overlap boundaries", () => {
   expect(chunks).toEqual([
     { id: "chunk_0", text: "abcdefghij", start: 0, end: 10 },
     { id: "chunk_1", text: "hijklmnopq", start: 7, end: 17 },
-    { id: "chunk_2", text: "nopqrstuvw", start: 14, end: 24 },
-    { id: "chunk_3", text: "uvwxyz", start: 21, end: 26 },
+    { id: "chunk_2", text: "opqrstuvwx", start: 14, end: 24 },
+    { id: "chunk_3", text: "vwxyz", start: 21, end: 26 },
   ]);
 });
 
@@ -68,5 +68,14 @@ test("chunkText returns an empty array for empty or whitespace-only input", () =
 
 test("chunkText handles invalid non-string input gracefully", () => {
   const result = chunkText(123 as unknown as string);
+  expect(result).toEqual([]);
+});
+
+test("chunkText rejects overlap equal to or greater than maxChunkSize", () => {
+  const result = chunkText("abcdefghijklmnopqrstuvwxyz", {
+    maxChunkSize: 10,
+    overlap: 10,
+    minChunkSize: 1,
+  });
   expect(result).toEqual([]);
 });
