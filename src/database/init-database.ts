@@ -14,16 +14,10 @@ export async function initializeLocalDatabase(
         PRAGMA foreign_keys = ON;
         CREATE TABLE IF NOT EXISTS ledger (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          action TEXT NOT NULL,
-          datetime TEXT NOT NULL,
-          content TEXT
-        );
-        CREATE TABLE IF NOT EXISTS context (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          embedding_id INTEGER NOT NULL,
-          content TEXT NOT NULL,
           created_at TEXT NOT NULL,
-          FOREIGN KEY (embedding_id) REFERENCES embeddings(id) ON DELETE CASCADE
+          action TEXT NOT NULL,
+          context_id INTEGER,
+          FOREIGN KEY (context_id) REFERENCES context(id) ON DELETE SET NULL
         );
         CREATE TABLE IF NOT EXISTS bank_transactions (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,6 +32,19 @@ export async function initializeLocalDatabase(
           created_at TEXT NOT NULL,
           summary TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS context (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          content TEXT NOT NULL,
+          created_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS chunks (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          content TEXT NOT NULL,
+          context_id INTEGER,
+          embedding_id INTEGER,
+          FOREIGN KEY (context_id) REFERENCES context(id) ON DELETE CASCADE,
+          FOREIGN KEY (embedding_id) REFERENCES embeddings(id) ON DELETE CASCADE
+        );
         CREATE VIRTUAL TABLE IF NOT EXISTS embeddings USING vec0 (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           embedding float[768]
@@ -49,3 +56,5 @@ export async function initializeLocalDatabase(
     return null;
   }
 }
+
+export default initializeLocalDatabase;
