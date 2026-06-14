@@ -15,6 +15,7 @@ const {
   insertContext,
   insertVector,
   removeContext,
+  retrieveTopKChunks,
 } = require("../src/database/db-utils");
 
 beforeEach(() => {
@@ -47,7 +48,11 @@ test("insertVector validates length and inserts", async () => {
   mockedDb.getAllAsync.mockImplementationOnce(async () => [{ id: 99 }]);
   const id = await insertVector(mockedDb, vec as number[]);
   expect(id).toBe(99);
+  // ensure we inserted a BLOB literal (X'...') into embeddings
   expect(mockedDb.execAsync).toHaveBeenCalled();
+  const callArg = String(mockedDb.execAsync.mock.calls[0][0]);
+  expect(callArg.includes("INSERT INTO embeddings")).toBe(true);
+  expect(callArg.includes("X'")).toBe(true);
 });
 
 test("removeContext deletes related rows and logs", async () => {
@@ -67,4 +72,28 @@ test("removeContext deletes related rows and logs", async () => {
   const calls = mockedDb.execAsync.mock.calls.map((c: any[]) => String(c[0]));
   expect(calls.some((s: string) => s.includes("BEGIN"))).toBe(true);
   expect(calls.some((s: string) => s.includes("COMMIT"))).toBe(true);
+});
+
+test("retrieveTopKChunks uses vector MATCH and returns ordered chunks", async () => {
+  // First call: MATCH query returns top embeddings
+  mockedDb.getAllAsync.mockImplementationOnce(async (sql: string) => {
+    return [
+      { id: 5, distance: 0.95 },
+      { id: 6, distance: 0.9 },
+    ];
+  });
+  // Second call: fetch chunks for those embedding ids
+  mockedDb.getAllAsync.mockImplementationOnce(async (sql: string) => {
+    return [
+      { id: 101, content: "chunk A", embedding_id: 5 },
+      { id: 102, content: "chunk B", embedding_id: 6 },
+    ];
+  });
+
+  const queryVec = new Array(768).fill(0.1);
+  const res = await retrieveTopKChunks(mockedDb, queryVec, 2);
+  expect(res.length).toBe(2);
+  expect(res[0].content).toBe("chunk A");
+  expect(res[0].score).toBeCloseTo(0.95);
+  expect(res[1].content).toBe("chunk B");
 });

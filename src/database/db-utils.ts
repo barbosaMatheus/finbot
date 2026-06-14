@@ -18,7 +18,9 @@ export async function insertContext(
 
     if (id != null) {
       await db.execAsync(
-        `INSERT INTO ledger (created_at, action, context_id) VALUES (datetime('now'), 'create', ${id});`,
+        `
+        INSERT INTO ledger (created_at, action, context_id)
+        VALUES (datetime('now'), 'create', ${id});`,
       );
     }
 
@@ -64,11 +66,21 @@ export async function insertVector(
       throw new Error("Vector must be an array of 768 numbers");
     }
 
-    const vectorString = JSON.stringify(vector);
+    // Convert Float32 array to little-endian bytes and hex-encode for BLOB literal
+    const buf = new ArrayBuffer(vector.length * 4);
+    const dv = new DataView(buf);
+    for (let i = 0; i < vector.length; i++)
+      dv.setFloat32(i * 4, vector[i], true);
+    const u8 = new Uint8Array(buf);
+    let hex = "";
+    for (let i = 0; i < u8.length; i++) {
+      const h = u8[i].toString(16).padStart(2, "0");
+      hex += h;
+    }
+    const blobLiteral = `X'${hex}'`;
 
-    const escVec = vectorString.replace(/'/g, "''");
     await db.execAsync(
-      `INSERT INTO embeddings (embedding) VALUES ('${escVec}');`,
+      `INSERT INTO embeddings (embedding) VALUES (${blobLiteral});`,
     );
 
     const rows = await db.getAllAsync("SELECT last_insert_rowid() AS id;");
@@ -100,7 +112,10 @@ export async function removeContext(
 
     // Find embedding ids referenced by chunks for this context
     const rows = await db.getAllAsync(
-      `SELECT embedding_id FROM chunks WHERE context_id = ${cid} AND embedding_id IS NOT NULL;`,
+      `
+      SELECT embedding_id
+      FROM chunks
+      WHERE context_id = ${cid} AND embedding_id IS NOT NULL;`,
     );
 
     const ids: number[] = [];
@@ -130,7 +145,9 @@ export async function removeContext(
 
     // Record the deletion in the ledger (context_id set to NULL to indicate gone)
     await db.execAsync(
-      `INSERT INTO ledger (created_at, action, context_id) VALUES (datetime('now'), 'delete', NULL);`,
+      `
+      INSERT INTO ledger (created_at, action, context_id)
+      VALUES (datetime('now'), 'delete', NULL);`,
     );
 
     await db.execAsync("COMMIT;");
@@ -147,4 +164,86 @@ export async function removeContext(
   }
 }
 
-export default { insertContext, insertChunk, insertVector, removeContext };
+export async function retrieveTopKChunks(
+  db: SQLite.SQLiteDatabase,
+  queryVector: number[],
+  k: number,
+): Promise<
+  Array<{
+    chunkId: number;
+    content: string;
+    embeddingId: number | null;
+    score: number;
+  }>
+> {
+  try {
+    const topk = Math.max(0, Math.floor(k));
+    if (topk === 0) return [];
+
+    // convert queryVector to BLOB hex literal
+    const buf = new ArrayBuffer(queryVector.length * 4);
+    const dv = new DataView(buf);
+    for (let i = 0; i < queryVector.length; i++)
+      dv.setFloat32(i * 4, queryVector[i], true);
+    const u8 = new Uint8Array(buf);
+    let hex = "";
+    for (let i = 0; i < u8.length; i++) {
+      hex += u8[i].toString(16).padStart(2, "0");
+    }
+    const blobLiteral = `X'${hex}'`;
+
+    // Use sqlite-vec MATCH query to get top-k embedding ids and distances
+    const searchSql = `
+    SELECT id, distance
+    FROM embeddings
+    WHERE embedding MATCH ${blobLiteral}
+    ORDER BY distance DESC
+    LIMIT ${topk};`;
+    const matches: any[] = (await db.getAllAsync(searchSql)) || [];
+    if (!Array.isArray(matches) || matches.length === 0) return [];
+
+    const embIds = matches.map((r) => Number(r.id));
+    const idList = embIds.join(",");
+
+    const chunkRows: any[] =
+      (await db.getAllAsync(
+        `
+        SELECT id, content, embedding_id
+        FROM chunks
+        WHERE embedding_id IN (${idList});`,
+      )) || [];
+
+    const scoreByEmb = new Map<number, number>();
+    for (const m of matches) scoreByEmb.set(Number(m.id), Number(m.distance));
+
+    const results: Array<{
+      chunkId: number;
+      content: string;
+      embeddingId: number | null;
+      score: number;
+    }> = [];
+    for (const c of chunkRows) {
+      const cid = Number(c.id);
+      const cont = c.content ?? "";
+      const eid = c.embedding_id != null ? Number(c.embedding_id) : null;
+      const score =
+        eid != null && scoreByEmb.has(eid) ? scoreByEmb.get(eid)! : -Infinity;
+      results.push({ chunkId: cid, content: cont, embeddingId: eid, score });
+    }
+
+    // Sort by score descending
+    results.sort((a, b) => b.score - a.score);
+    return results;
+  } catch (error) {
+    console.error("retrieveTopKChunks failed:", error);
+    return [];
+  }
+}
+
+export default {
+  insertContext,
+  insertChunk,
+  insertVector,
+  removeContext,
+  retrieveTopKChunks,
+};

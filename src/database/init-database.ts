@@ -47,7 +47,8 @@ export async function initializeLocalDatabase(
         );
         CREATE VIRTUAL TABLE IF NOT EXISTS embeddings USING vec0 (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          embedding float[768]
+          embedding float[768],
+          distance_metric = 'cosine'
         );
       `);
     return db;
