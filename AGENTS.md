@@ -8,6 +8,14 @@ Before writing Expo/RN code, read the versioned docs: https://docs.expo.dev/vers
 
 Prefer Expo SDK modules and React Native built-ins over third-party packages.
 
+## Avoid deprecated functionality
+
+- Do **not** use deprecated APIs, props, hooks, modules, or patterns from Expo, React Native, React, Expo Router, or any dependency.
+- Before adopting an API, confirm it is current for **Expo SDK 56** / the installed package version (versioned Expo docs, React Native docs, or the library’s current docs). Prefer the recommended replacement when docs mark something as deprecated or legacy.
+- Do not copy outdated snippets (class components, old React Navigation patterns when Expo Router applies, removed RN APIs, legacy Expo modules, etc.).
+- When refactoring or touching existing code that uses a deprecated API, migrate it to the supported replacement rather than extending the deprecated usage.
+- If unsure whether something is deprecated, check the SDK 56 docs (or package changelog) and choose the non-deprecated path.
+
 ## Stack
 
 - Expo SDK 56 + Expo Router (file-based routing under `src/app`)
