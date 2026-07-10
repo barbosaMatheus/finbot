@@ -1,0 +1,15 @@
+node_modules
+.expo
+dist
+web-build
+ios
+android
+.git
+.env
+.env.*
+*.log
+npm-debug.*
+.DS_Store
+.vscode
+Dockerfile
+.dockerignore
