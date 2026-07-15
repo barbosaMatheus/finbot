@@ -54,7 +54,7 @@ export function OnboardingWizard() {
     if (isLastStep) {
       const didComplete = await completeOnboarding();
       if (didComplete) {
-        router.replace('/(app)');
+        router.replace('/(connect-bank)');
       }
       return;
     }
