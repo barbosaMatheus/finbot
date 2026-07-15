@@ -22,6 +22,32 @@ Prefer Expo SDK modules and React Native built-ins over third-party packages.
 - React 19 + React Native
 - TypeScript (`strict: true`)
 - Path alias: `@/*` → `src/*`, `@/assets/*` → `assets/*`
+- **Zod** for schema definitions and validation
+- **React Hook Form** (`react-hook-form` + `@hookform/resolvers`) for form state
+
+## Form validation (required)
+
+- Use **React Hook Form** for all forms (auth, onboarding, settings, etc.).
+- Define schemas with **Zod** and wire them via `zodResolver` from `@hookform/resolvers/zod`.
+- Prefer `Controller` / `useFormContext` / `FormProvider` for React Native inputs (no native HTML form refs).
+- Infer form value types from Zod with `z.infer<typeof schema>` instead of duplicating hand-written form types when possible.
+- Validate before submit / step advance with `handleSubmit` or `trigger(fieldNames)`.
+- Do not invent ad-hoc validators when Zod + RHF already cover the case. Do not add a second form/validation library.
+- Colocate feature schemas under `features/<feature>/schemas/` (or next to the form if tiny).
+
+Example:
+
+```ts
+const schema = z.object({
+  email: z.email(),
+  password: z.string().min(8),
+});
+
+const form = useForm<z.infer<typeof schema>>({
+  resolver: zodResolver(schema),
+  defaultValues: { email: '', password: '' },
+});
+```
 
 ## Dependencies
 
@@ -73,6 +99,7 @@ src/features/<feature>/
   components/    # Feature-only components
   constants/     # Feature-only constants
   hooks/         # Feature-only hooks (use*.ts)
+  schemas/       # Zod schemas for feature forms / payloads
   stores/        # Feature-only state
   types/         # Feature-only types
   utils/         # Feature-only helpers

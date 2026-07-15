@@ -19,8 +19,13 @@ function RootLayoutNav() {
 
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      router.replace('/(app)');
+      return;
+    }
+
+    // Temporary: after mock login/signup, always enter onboarding.
+    // Later this will check an onboardingCompleted flag from the user record.
+    if (isAuthenticated && inAuthGroup) {
+      router.replace('/(onboarding)');
     }
   }, [isAuthenticated, isLoading, router, segments]);
 
