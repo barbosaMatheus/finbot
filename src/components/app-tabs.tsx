@@ -11,20 +11,24 @@ export default function AppTabs() {
     <NativeTabs
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
+      labelVisibilityMode="unlabeled"
+      iconColor={{
+        default: colors.textSecondary,
+        selected: colors.text,
+      }}>
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Label hidden>Home</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
+          md={{ default: 'home', selected: 'home' }}
+          sf={{ default: 'house', selected: 'house.fill' }}
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="chat">
+        <NativeTabs.Trigger.Label hidden>Chat</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
+          md={{ default: 'chat', selected: 'chat' }}
+          sf={{ default: 'bubble.left', selected: 'bubble.left.fill' }}
         />
       </NativeTabs.Trigger>
     </NativeTabs>
