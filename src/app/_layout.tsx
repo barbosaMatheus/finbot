@@ -16,13 +16,16 @@ function RootLayoutNav() {
     }
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inOnboardingGroup = segments[0] === '(onboarding)';
 
-    if (!isAuthenticated && !inAuthGroup) {
+    // Allow unauthenticated access to onboarding so Sign up can start with
+    // the create-account step before the user has a session.
+    if (!isAuthenticated && !inAuthGroup && !inOnboardingGroup) {
       router.replace('/(auth)/login');
       return;
     }
 
-    // Temporary: after mock login/signup, always enter onboarding.
+    // Temporary: after mock login, always enter onboarding.
     // Later this will check an onboardingCompleted flag from the user record.
     if (isAuthenticated && inAuthGroup) {
       router.replace('/(onboarding)');

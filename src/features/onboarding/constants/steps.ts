@@ -6,7 +6,13 @@ export type OnboardingStepConfig = {
   description: string;
 };
 
-export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
+export const CREATE_ACCOUNT_STEP: OnboardingStepConfig = {
+  id: 'createAccount',
+  title: 'Create your account',
+  description: 'Set an email and password so you can sign back in anytime.',
+};
+
+export const ONBOARDING_PROFILE_STEPS: OnboardingStepConfig[] = [
   {
     id: 'aboutYou',
     title: 'About you',
@@ -38,3 +44,13 @@ export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
     description: 'A few final details to tailor your guidance.',
   },
 ];
+
+/** Full signup wizard, including account creation. */
+export const ONBOARDING_STEPS: OnboardingStepConfig[] = [
+  CREATE_ACCOUNT_STEP,
+  ...ONBOARDING_PROFILE_STEPS,
+];
+
+export function getOnboardingSteps(includeCreateAccount: boolean): OnboardingStepConfig[] {
+  return includeCreateAccount ? ONBOARDING_STEPS : ONBOARDING_PROFILE_STEPS;
+}

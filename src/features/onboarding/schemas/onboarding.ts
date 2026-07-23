@@ -7,6 +7,7 @@ import {
 import { parseDateOfBirth } from '@/features/onboarding/utils/date-of-birth';
 
 export type OnboardingStepId =
+  | 'createAccount'
   | 'aboutYou'
   | 'workAndIncome'
   | 'monthlyCosts'
@@ -81,6 +82,20 @@ const dateOfBirthSchema = z
     return date !== null && date.getTime() <= Date.now();
   }, 'Select a valid date of birth.');
 
+export const createAccountFieldsSchema = z.object({
+  email: z.email('Enter a valid email address.'),
+  password: z.string().min(8, 'Password must be at least 8 characters.'),
+  confirmPassword: z.string().min(1, 'Confirm your password.'),
+});
+
+export const createAccountSchema = createAccountFieldsSchema.refine(
+  (value) => value.password === value.confirmPassword,
+  {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  },
+);
+
 export const aboutYouSchema = z.object({
   fullName: z.string().trim().min(1, 'Please enter your full name.'),
   dateOfBirth: dateOfBirthSchema,
@@ -140,6 +155,7 @@ export const preferencesSchema = z.object({
   additionalContext: z.string(),
 });
 
+/** Profile answers persisted after onboarding (excludes credentials). */
 export const onboardingAnswersSchema = aboutYouSchema
   .extend(workAndIncomeSchema.shape)
   .extend(monthlyCostsSchema.shape)
@@ -147,16 +163,25 @@ export const onboardingAnswersSchema = aboutYouSchema
   .extend(goalsAndPoolsSchema.shape)
   .extend(preferencesSchema.shape);
 
-/** Form state (allows null for unanswered choice fields). */
-export type OnboardingFormValues = z.input<typeof onboardingAnswersSchema>;
+/** Full wizard form including the create-account step. */
+export const onboardingFormSchema = createAccountFieldsSchema
+  .extend(onboardingAnswersSchema.shape)
+  .refine((value) => value.password === value.confirmPassword, {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  });
 
-/** Parsed/submitted onboarding payload. */
+/** Form state (allows null for unanswered choice fields). */
+export type OnboardingFormValues = z.input<typeof onboardingFormSchema>;
+
+/** Parsed/submitted onboarding payload (no passwords). */
 export type OnboardingAnswers = z.output<typeof onboardingAnswersSchema>;
 
 export const ONBOARDING_STEP_FIELDS: Record<
   OnboardingStepId,
   readonly (keyof OnboardingFormValues)[]
 > = {
+  createAccount: ['email', 'password', 'confirmPassword'],
   aboutYou: ['fullName', 'dateOfBirth', 'maritalStatus', 'dependentsCount'],
   workAndIncome: ['employmentStatus', 'monthlyTakeHomeIncome'],
   monthlyCosts: [
@@ -171,6 +196,7 @@ export const ONBOARDING_STEP_FIELDS: Record<
 };
 
 export const ONBOARDING_STEP_SCHEMAS = {
+  createAccount: createAccountSchema,
   aboutYou: aboutYouSchema,
   workAndIncome: workAndIncomeSchema,
   monthlyCosts: monthlyCostsSchema,

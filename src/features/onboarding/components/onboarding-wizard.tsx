@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { AboutYouStep } from '@/features/onboarding/components/about-you-step';
+import { CreateAccountStep } from '@/features/onboarding/components/create-account-step';
 import { GoalsAndPoolsStep } from '@/features/onboarding/components/goals-and-pools-step';
 import { MonthlyCostsStep } from '@/features/onboarding/components/monthly-costs-step';
 import { OnboardingNavFooter } from '@/features/onboarding/components/onboarding-nav-footer';
@@ -12,12 +13,13 @@ import { OnboardingStepHeader } from '@/features/onboarding/components/onboardin
 import { PreferencesStep } from '@/features/onboarding/components/preferences-step';
 import { SavingsAndDebtStep } from '@/features/onboarding/components/savings-and-debt-step';
 import { WorkAndIncomeStep } from '@/features/onboarding/components/work-and-income-step';
-import { ONBOARDING_STEPS } from '@/features/onboarding/constants/steps';
 import { useOnboarding } from '@/features/onboarding/hooks/use-onboarding';
 import type { OnboardingStepId } from '@/features/onboarding/types/onboarding';
 
-function renderStepContent(stepId: OnboardingStepId) {
+function renderStepContent(stepId: OnboardingStepId, accountError: string | null) {
   switch (stepId) {
+    case 'createAccount':
+      return <CreateAccountStep formError={accountError} />;
     case 'aboutYou':
       return <AboutYouStep />;
     case 'workAndIncome':
@@ -38,17 +40,20 @@ function renderStepContent(stepId: OnboardingStepId) {
 export function OnboardingWizard() {
   const router = useRouter();
   const {
+    steps,
     stepIndex,
     stepCount,
     isFirstStep,
     isLastStep,
     canProceed,
+    isSubmitting,
+    accountError,
     goBack,
     goNext,
     completeOnboarding,
   } = useOnboarding();
 
-  const currentStep = ONBOARDING_STEPS[stepIndex];
+  const currentStep = steps[stepIndex];
 
   async function handleNext() {
     if (isLastStep) {
@@ -66,11 +71,14 @@ export function OnboardingWizard() {
     <ThemedView style={styles.wizard}>
       <OnboardingProgressBar stepCount={stepCount} stepIndex={stepIndex} />
       <OnboardingStepHeader description={currentStep.description} title={currentStep.title} />
-      <ThemedView style={styles.content}>{renderStepContent(currentStep.id)}</ThemedView>
+      <ThemedView style={styles.content}>
+        {renderStepContent(currentStep.id, accountError)}
+      </ThemedView>
       <OnboardingNavFooter
         canProceed={canProceed}
         isFirstStep={isFirstStep}
         isLastStep={isLastStep}
+        isSubmitting={isSubmitting}
         onBack={goBack}
         onNext={handleNext}
       />

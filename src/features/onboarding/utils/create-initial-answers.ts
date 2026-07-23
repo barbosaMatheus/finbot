@@ -2,6 +2,9 @@ import type { OnboardingFormValues } from '@/features/onboarding/schemas/onboard
 
 export function createInitialAnswers(): OnboardingFormValues {
   return {
+    email: '',
+    password: '',
+    confirmPassword: '',
     fullName: '',
     dateOfBirth: '',
     maritalStatus: null,

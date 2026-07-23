@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -22,6 +22,7 @@ import { useTheme } from '@/hooks/use-theme';
 
 export default function LoginScreen() {
   const theme = useTheme();
+  const router = useRouter();
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -86,11 +87,16 @@ export default function LoginScreen() {
           ) : null}
 
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sign in"
             disabled={isSubmitting}
             onPress={handleSubmit}
             style={({ pressed }) => [
               styles.button,
-              { backgroundColor: theme.backgroundSelected, opacity: pressed || isSubmitting ? 0.7 : 1 },
+              {
+                backgroundColor: theme.backgroundSelected,
+                opacity: pressed || isSubmitting ? 0.7 : 1,
+              },
             ]}>
             {isSubmitting ? (
               <ActivityIndicator color={theme.text} />
@@ -99,12 +105,20 @@ export default function LoginScreen() {
             )}
           </Pressable>
 
-          <ThemedText type="small" themeColor="textSecondary" style={styles.footer}>
-            Don&apos;t have an account?{' '}
-            <Link href="/(auth)/signup">
-              <ThemedText type="linkPrimary">Create one</ThemedText>
-            </Link>
-          </ThemedText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sign up"
+            disabled={isSubmitting}
+            onPress={() => router.push('/(onboarding)')}
+            style={({ pressed }) => [
+              styles.signUpButton,
+              {
+                borderColor: theme.backgroundSelected,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}>
+            <ThemedText type="smallBold">Sign up</ThemedText>
+          </Pressable>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </ThemedView>
@@ -139,10 +153,15 @@ const styles = StyleSheet.create({
     borderRadius: Spacing.two,
     paddingVertical: Spacing.three,
     marginTop: Spacing.two,
+    minHeight: 48,
   },
-  footer: {
-    textAlign: 'center',
-    marginTop: Spacing.two,
+  signUpButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderRadius: Spacing.two,
+    paddingVertical: Spacing.three,
+    minHeight: 48,
   },
   formError: {
     color: '#e5484d',
