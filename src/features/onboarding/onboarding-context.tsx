@@ -27,6 +27,7 @@ import {
   type OnboardingFormValues,
 } from '@/features/onboarding/schemas/onboarding';
 import { createInitialAnswers } from '@/features/onboarding/utils/create-initial-answers';
+import { ApiError } from '@/lib/api-client';
 
 type OnboardingContextValue = {
   form: UseFormReturn<OnboardingFormValues>;
@@ -100,8 +101,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         await register({ email, password });
         form.setValue('password', '');
         form.setValue('confirmPassword', '');
-      } catch {
-        setAccountError('Unable to create account. Please try again.');
+      } catch (err) {
+        setAccountError(
+          err instanceof ApiError
+            ? err.message
+            : 'Unable to create account. Please try again.',
+        );
         return false;
       } finally {
         setIsSubmitting(false);

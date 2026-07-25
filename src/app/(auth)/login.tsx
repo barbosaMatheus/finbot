@@ -19,6 +19,7 @@ import {
 } from '@/features/auth/validation';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { ApiError } from '@/lib/api-client';
 
 export default function LoginScreen() {
   const theme = useTheme();
@@ -41,8 +42,13 @@ export default function LoginScreen() {
 
     try {
       await login({ email, password });
-    } catch {
-      setErrors({ form: 'Unable to sign in. Please try again.' });
+    } catch (err) {
+      setErrors({
+        form:
+          err instanceof ApiError
+            ? err.message
+            : 'Unable to sign in. Please try again.',
+      });
     } finally {
       setIsSubmitting(false);
     }

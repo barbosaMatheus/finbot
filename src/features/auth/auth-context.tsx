@@ -1,5 +1,19 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
+import {
+  login as loginRequest,
+  logout as logoutRequest,
+  refreshSession as refreshSessionRequest,
+  register as registerRequest,
+} from './auth-api';
 import type { LoginCredentials, RegisterCredentials, User } from './types';
 
 type AuthContextValue = {
@@ -16,31 +30,56 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const refreshSession = useCallback(async () => {
+    const result = await refreshSessionRequest();
+    setUser(result.user);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreSession() {
+      try {
+        const result = await refreshSessionRequest();
+        if (!cancelled) {
+          setUser(result.user);
+        }
+      } catch {
+        if (!cancelled) {
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void restoreSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const login = useCallback(async (credentials: LoginCredentials) => {
-    // TODO: swap mock for auth-api.ts login()
-    setUser({
-      id: 'mock-user-id',
-      email: credentials.email.trim().toLowerCase(),
-    });
+    const result = await loginRequest(credentials);
+    setUser(result.user);
   }, []);
 
   const register = useCallback(async (credentials: RegisterCredentials) => {
-    // TODO: swap mock for auth-api.ts register()
-    setUser({
-      id: 'mock-user-id',
-      email: credentials.email.trim().toLowerCase(),
-    });
+    const result = await registerRequest(credentials);
+    setUser(result.user);
   }, []);
 
   const logout = useCallback(async () => {
-    // TODO: swap mock for auth-api.ts logout()
-    setUser(null);
-  }, []);
-
-  const refreshSession = useCallback(async () => {
-    // TODO: swap mock for auth-api.ts refreshSession()
+    try {
+      await logoutRequest();
+    } finally {
+      setUser(null);
+    }
   }, []);
 
   const value = useMemo<AuthContextValue>(
