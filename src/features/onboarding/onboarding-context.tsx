@@ -15,6 +15,7 @@ import {
 } from 'react-hook-form';
 
 import { useAuth } from '@/features/auth/use-auth';
+import { submitOnboarding } from '@/features/onboarding/api/onboarding-api';
 import {
   getOnboardingSteps,
   type OnboardingStepConfig,
@@ -142,24 +143,39 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const completeOnboarding = useCallback(async () => {
     const lastStep = steps[steps.length - 1];
+    const fields = [...ONBOARDING_STEP_FIELDS[lastStep.id]];
+    const isValid = await form.trigger(fields);
 
-    if (!SKIP_ONBOARDING_VALIDATION) {
-      const fields = [...ONBOARDING_STEP_FIELDS[lastStep.id]];
-      const isValid = await form.trigger(fields);
-
-      if (!isValid) {
-        return false;
-      }
+    if (!isValid && !SKIP_ONBOARDING_VALIDATION) {
+      return false;
     }
 
     const { email: _email, password: _password, confirmPassword: _confirm, ...answers } =
       form.getValues();
     const parsed = onboardingAnswersSchema.safeParse(answers);
 
-    // Local-only for now; persist via API when onboarding backend is ready.
-    console.log('[onboarding] completed', parsed.success ? parsed.data : answers);
-    setIsComplete(true);
-    return true;
+    if (!parsed.success) {
+      setAccountError('Please finish all onboarding answers before continuing.');
+      return false;
+    }
+
+    setIsSubmitting(true);
+    setAccountError(null);
+
+    try {
+      await submitOnboarding(parsed.data);
+      setIsComplete(true);
+      return true;
+    } catch (err) {
+      setAccountError(
+        err instanceof ApiError
+          ? err.message
+          : 'Unable to save onboarding. Please try again.',
+      );
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
   }, [form, steps]);
 
   const resetOnboarding = useCallback(() => {

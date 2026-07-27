@@ -9,7 +9,11 @@ import { OnboardingField } from '@/features/onboarding/components/onboarding-fie
 import { RISK_COMFORT_OPTIONS } from '@/features/onboarding/constants/options';
 import type { OnboardingFormValues } from '@/features/onboarding/schemas/onboarding';
 
-export function PreferencesStep() {
+type PreferencesStepProps = {
+  formError?: string | null;
+};
+
+export function PreferencesStep({ formError }: PreferencesStepProps) {
   const { control } = useFormContext<OnboardingFormValues>();
 
   return (
@@ -43,7 +47,7 @@ export function PreferencesStep() {
         render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
           <OnboardingField
             error={error?.message}
-            label="Anything else we should know? (optional)"
+            label="Is there anything else about your financial situation, goals, concerns, or future plans that would help us provide better financial guidance?"
             multiline
             onBlur={onBlur}
             onChangeText={onChange}
@@ -54,6 +58,12 @@ export function PreferencesStep() {
           />
         )}
       />
+
+      {formError ? (
+        <ThemedText type="small" style={styles.error}>
+          {formError}
+        </ThemedText>
+      ) : null}
     </ThemedView>
   );
 }

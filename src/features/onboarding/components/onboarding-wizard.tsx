@@ -31,7 +31,7 @@ function renderStepContent(stepId: OnboardingStepId, accountError: string | null
     case 'goalsAndPools':
       return <GoalsAndPoolsStep />;
     case 'preferences':
-      return <PreferencesStep />;
+      return <PreferencesStep formError={accountError} />;
     default:
       return null;
   }
