@@ -23,8 +23,10 @@ RUN npm ci
 # reload. Source is bind-mounted at runtime.
 FROM deps AS dev
 COPY . .
+# Bind on all interfaces so Docker port publishing can reach Metro from the host.
+# Default Expo host is localhost, which is unreachable via published ports.
 EXPOSE 8081
-CMD ["npx", "expo", "start", "--web", "--port", "8081"]
+CMD ["npx", "expo", "start", "--web", "--port", "8081", "--host", "lan"]
 
 # --- build ------------------------------------------------------------------
 # Exports a static web bundle to dist/ for production hosting.
