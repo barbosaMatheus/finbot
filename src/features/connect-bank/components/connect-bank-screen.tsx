@@ -1,14 +1,15 @@
 import { useRouter } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
-import { useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useConnectBank } from '@/features/connect-bank/hooks/use-connect-bank';
 import { useTheme } from '@/hooks/use-theme';
 
 const PRIMARY_BLUE = '#1877F2';
+const ERROR_RED = '#e5484d';
 
 const TRUST_POINTS = [
   {
@@ -31,12 +32,11 @@ const TRUST_POINTS = [
 export function ConnectBankScreen() {
   const theme = useTheme();
   const router = useRouter();
-  // Placeholder until Plaid Link is wired: tapping Connect marks the account connected.
-  const [isConnected, setIsConnected] = useState(false);
+  const { status, connection, error, connect } = useConnectBank();
 
-  function handleConnectBank() {
-    setIsConnected(true);
-  }
+  const isConnected = status === 'connected';
+  const isBusy = status === 'linking' || status === 'checking';
+  const institutionName = connection?.institutionName;
 
   function handleContinue() {
     if (!isConnected) {
@@ -68,7 +68,7 @@ export function ConnectBankScreen() {
           </ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.subtitle}>
             {isConnected
-              ? 'Your account is linked. Continue to start using FinBot.'
+              ? `${institutionName ?? 'Your account'} is linked. Continue to start using FinBot.`
               : 'Link your account so FinBot can track spending, balances, and help you stay on budget.'}
           </ThemedText>
         </ThemedView>
@@ -92,23 +92,34 @@ export function ConnectBankScreen() {
       </ThemedView>
 
       <ThemedView style={styles.actions}>
+        {error ? (
+          <ThemedText type="small" style={styles.error}>
+            {error}
+          </ThemedText>
+        ) : null}
+
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Connect bank"
-          disabled={isConnected}
-          onPress={handleConnectBank}
+          accessibilityState={{ busy: isBusy, disabled: isConnected || isBusy }}
+          disabled={isConnected || isBusy}
+          onPress={connect}
           style={({ pressed }) => [
             styles.primaryButton,
             {
               backgroundColor: isConnected ? theme.backgroundElement : PRIMARY_BLUE,
-              opacity: pressed && !isConnected ? 0.7 : 1,
+              opacity: isBusy ? 0.7 : pressed && !isConnected ? 0.7 : 1,
             },
           ]}>
-          <ThemedText
-            type="smallBold"
-            style={{ color: isConnected ? theme.text : '#ffffff' }}>
-            {isConnected ? 'Connected' : 'Connect bank'}
-          </ThemedText>
+          {status === 'linking' ? (
+            <ActivityIndicator color="#ffffff" />
+          ) : (
+            <ThemedText
+              type="smallBold"
+              style={{ color: isConnected ? theme.text : '#ffffff' }}>
+              {isConnected ? 'Connected' : status === 'error' ? 'Try again' : 'Connect bank'}
+            </ThemedText>
+          )}
         </Pressable>
 
         <Pressable
@@ -209,5 +220,9 @@ const styles = StyleSheet.create({
   footnote: {
     textAlign: 'center',
     marginTop: Spacing.one,
+  },
+  error: {
+    color: ERROR_RED,
+    textAlign: 'center',
   },
 });
