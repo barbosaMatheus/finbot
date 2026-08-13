@@ -45,7 +45,7 @@ export function AppHeader({ email, onAccount, onLogout }: AppHeaderProps) {
           <Pressable
             accessibilityLabel="Account menu"
             accessibilityRole="button"
-            accessibilityState={{ expanded: isMenuOpen }}
+            aria-expanded={isMenuOpen}
             onPress={() => setIsMenuOpen(true)}
             style={({ pressed }) => [styles.avatarButton, { opacity: pressed ? 0.7 : 1 }]}>
             <UserAvatar email={email} />
