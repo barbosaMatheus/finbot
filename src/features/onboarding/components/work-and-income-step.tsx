@@ -47,7 +47,7 @@ export function WorkAndIncomeStep() {
             label="Average monthly take-home income"
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="4500"
+            placeholder="e.g. 4500"
             value={value}
           />
         )}

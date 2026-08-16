@@ -26,7 +26,7 @@ export function AboutYouStep() {
             label="Full name"
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="Jane Doe"
+            placeholder="e.g. Jane Doe"
             value={value}
           />
         )}
@@ -73,7 +73,7 @@ export function AboutYouStep() {
             label="Dependents who rely on your income"
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="0"
+            placeholder="e.g. 0"
             value={value}
           />
         )}

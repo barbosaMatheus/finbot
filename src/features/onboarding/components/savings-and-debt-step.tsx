@@ -23,7 +23,7 @@ export function SavingsAndDebtStep() {
             label="Savings & emergency funds"
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="5000"
+            placeholder="e.g. 5000"
             value={value}
           />
         )}
@@ -39,7 +39,7 @@ export function SavingsAndDebtStep() {
             label="Total debt"
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="12000"
+            placeholder="e.g. 12000"
             value={value}
           />
         )}

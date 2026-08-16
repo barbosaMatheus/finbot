@@ -45,13 +45,13 @@ export function OnboardingNavFooter({
       )}
 
       <Pressable
-        disabled={isSubmitting}
+        disabled={isSubmitting || !canProceed}
         onPress={onNext}
         style={({ pressed }) => [
           styles.primaryButton,
           {
             backgroundColor: CONTINUE_BUTTON_BLUE,
-            opacity: isSubmitting ? 0.7 : !canProceed ? 0.55 : pressed ? 0.7 : 1,
+            opacity: isSubmitting || !canProceed ? 0.55 : pressed ? 0.7 : 1,
           },
         ]}>
         {isSubmitting ? (

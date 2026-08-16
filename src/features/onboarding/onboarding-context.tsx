@@ -49,9 +49,6 @@ type OnboardingContextValue = {
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
 
-/** Dev-only: skip profile-step validation so Continue/Finish always advances. */
-const SKIP_ONBOARDING_VALIDATION = __DEV__;
-
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, register } = useAuth();
   const [includeCreateAccount] = useState(() => !isAuthenticated);
@@ -75,11 +72,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const currentStep = steps[stepIndex];
   const currentStepId = currentStep.id;
   const watchedValues = useWatch({ control: form.control }) ?? form.getValues();
-  const canProceed =
-    currentStepId === 'createAccount'
-      ? ONBOARDING_STEP_SCHEMAS.createAccount.safeParse(watchedValues).success
-      : SKIP_ONBOARDING_VALIDATION ||
-        ONBOARDING_STEP_SCHEMAS[currentStepId].safeParse(watchedValues).success;
+  const canProceed = ONBOARDING_STEP_SCHEMAS[currentStepId].safeParse(
+    watchedValues,
+  ).success;
 
   const isFirstStep =
     stepIndex === 0 || steps[stepIndex - 1]?.id === 'createAccount';
@@ -88,12 +83,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     const stepId = steps[stepIndex].id;
     const fields = [...ONBOARDING_STEP_FIELDS[stepId]];
 
-    if (stepId === 'createAccount') {
-      const isValid = await form.trigger(fields);
-      if (!isValid) {
-        return false;
-      }
+    const isValid = await form.trigger(fields);
+    if (!isValid) {
+      return false;
+    }
 
+    if (stepId === 'createAccount') {
       const { email, password } = form.getValues();
       setIsSubmitting(true);
       setAccountError(null);
@@ -111,11 +106,6 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         return false;
       } finally {
         setIsSubmitting(false);
-      }
-    } else if (!SKIP_ONBOARDING_VALIDATION) {
-      const isValid = await form.trigger(fields);
-      if (!isValid) {
-        return false;
       }
     }
 
@@ -146,7 +136,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     const fields = [...ONBOARDING_STEP_FIELDS[lastStep.id]];
     const isValid = await form.trigger(fields);
 
-    if (!isValid && !SKIP_ONBOARDING_VALIDATION) {
+    if (!isValid) {
       return false;
     }
 

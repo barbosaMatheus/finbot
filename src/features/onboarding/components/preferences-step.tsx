@@ -51,7 +51,7 @@ export function PreferencesStep({ formError }: PreferencesStepProps) {
             multiline
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="Optional notes about your situation, goals, or concerns..."
+            placeholder="e.g. Notes about your situation, goals, or concerns..."
             style={styles.textarea}
             textAlignVertical="top"
             value={value}
