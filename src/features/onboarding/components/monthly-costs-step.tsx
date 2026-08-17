@@ -41,7 +41,7 @@ export function MonthlyCostsStep() {
             label="Monthly housing costs (Approximate)"
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="1800"
+            placeholder="e.g. 1800"
             value={value}
           />
         )}
@@ -57,7 +57,7 @@ export function MonthlyCostsStep() {
             label="Monthly food & grocery spend (Approximate)"
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="600"
+            placeholder="e.g. 600"
             value={value}
           />
         )}
@@ -73,7 +73,7 @@ export function MonthlyCostsStep() {
             label="Monthly transportation costs (Approximate)"
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="350"
+            placeholder="e.g. 350"
             value={value}
           />
         )}

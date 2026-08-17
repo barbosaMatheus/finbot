@@ -15,6 +15,7 @@ import {
 } from 'react-hook-form';
 
 import { useAuth } from '@/features/auth/use-auth';
+import { submitOnboarding } from '@/features/onboarding/api/onboarding-api';
 import {
   getOnboardingSteps,
   type OnboardingStepConfig,
@@ -27,6 +28,7 @@ import {
   type OnboardingFormValues,
 } from '@/features/onboarding/schemas/onboarding';
 import { createInitialAnswers } from '@/features/onboarding/utils/create-initial-answers';
+import { ApiError } from '@/lib/api-client';
 
 type OnboardingContextValue = {
   form: UseFormReturn<OnboardingFormValues>;
@@ -46,9 +48,6 @@ type OnboardingContextValue = {
 };
 
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
-
-/** Dev-only: skip profile-step validation so Continue/Finish always advances. */
-const SKIP_ONBOARDING_VALIDATION = __DEV__;
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const { isAuthenticated, register } = useAuth();
@@ -73,11 +72,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   const currentStep = steps[stepIndex];
   const currentStepId = currentStep.id;
   const watchedValues = useWatch({ control: form.control }) ?? form.getValues();
-  const canProceed =
-    currentStepId === 'createAccount'
-      ? ONBOARDING_STEP_SCHEMAS.createAccount.safeParse(watchedValues).success
-      : SKIP_ONBOARDING_VALIDATION ||
-        ONBOARDING_STEP_SCHEMAS[currentStepId].safeParse(watchedValues).success;
+  const canProceed = ONBOARDING_STEP_SCHEMAS[currentStepId].safeParse(
+    watchedValues,
+  ).success;
 
   const isFirstStep =
     stepIndex === 0 || steps[stepIndex - 1]?.id === 'createAccount';
@@ -86,12 +83,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     const stepId = steps[stepIndex].id;
     const fields = [...ONBOARDING_STEP_FIELDS[stepId]];
 
-    if (stepId === 'createAccount') {
-      const isValid = await form.trigger(fields);
-      if (!isValid) {
-        return false;
-      }
+    const isValid = await form.trigger(fields);
+    if (!isValid) {
+      return false;
+    }
 
+    if (stepId === 'createAccount') {
       const { email, password } = form.getValues();
       setIsSubmitting(true);
       setAccountError(null);
@@ -100,16 +97,15 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         await register({ email, password });
         form.setValue('password', '');
         form.setValue('confirmPassword', '');
-      } catch {
-        setAccountError('Unable to create account. Please try again.');
+      } catch (err) {
+        setAccountError(
+          err instanceof ApiError
+            ? err.message
+            : 'Unable to create account. Please try again.',
+        );
         return false;
       } finally {
         setIsSubmitting(false);
-      }
-    } else if (!SKIP_ONBOARDING_VALIDATION) {
-      const isValid = await form.trigger(fields);
-      if (!isValid) {
-        return false;
       }
     }
 
@@ -137,24 +133,39 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   const completeOnboarding = useCallback(async () => {
     const lastStep = steps[steps.length - 1];
+    const fields = [...ONBOARDING_STEP_FIELDS[lastStep.id]];
+    const isValid = await form.trigger(fields);
 
-    if (!SKIP_ONBOARDING_VALIDATION) {
-      const fields = [...ONBOARDING_STEP_FIELDS[lastStep.id]];
-      const isValid = await form.trigger(fields);
-
-      if (!isValid) {
-        return false;
-      }
+    if (!isValid) {
+      return false;
     }
 
     const { email: _email, password: _password, confirmPassword: _confirm, ...answers } =
       form.getValues();
     const parsed = onboardingAnswersSchema.safeParse(answers);
 
-    // Local-only for now; persist via API when onboarding backend is ready.
-    console.log('[onboarding] completed', parsed.success ? parsed.data : answers);
-    setIsComplete(true);
-    return true;
+    if (!parsed.success) {
+      setAccountError('Please finish all onboarding answers before continuing.');
+      return false;
+    }
+
+    setIsSubmitting(true);
+    setAccountError(null);
+
+    try {
+      await submitOnboarding(parsed.data);
+      setIsComplete(true);
+      return true;
+    } catch (err) {
+      setAccountError(
+        err instanceof ApiError
+          ? err.message
+          : 'Unable to save onboarding. Please try again.',
+      );
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
   }, [form, steps]);
 
   const resetOnboarding = useCallback(() => {

@@ -29,7 +29,7 @@ export function CreateAccountStep({ formError }: CreateAccountStepProps) {
             label="Email"
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="you@example.com"
+            placeholder="e.g. you@example.com"
             textContentType="emailAddress"
             value={value}
           />
