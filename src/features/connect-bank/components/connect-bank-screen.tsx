@@ -16,7 +16,6 @@ import { useOnboardingStatus } from '@/features/onboarding-status/onboarding-sta
 import { useTheme } from '@/hooks/use-theme';
 import type { PlaidConnection } from '@/api/client';
 
-const PRIMARY_BLUE = '#1877F2';
 const ERROR_RED = '#e5484d';
 
 function healthLabel(connection: PlaidConnection): {

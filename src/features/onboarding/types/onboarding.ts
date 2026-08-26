@@ -5,7 +5,6 @@ import {
   financialGoalSchema,
   maritalStatusSchema,
   moneyPoolOptionSchema,
-  onboardingAnswersSchema,
   riskComfortSchema,
   subscriptionServiceSchema,
   type OnboardingAnswers,

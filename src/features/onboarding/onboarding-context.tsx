@@ -93,7 +93,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         const initial = createInitialAnswers();
         const next: OnboardingFormValues = { ...initial };
 
-        for (const key of Object.keys(initial) as Array<keyof OnboardingFormValues>) {
+        for (const key of Object.keys(initial) as (keyof OnboardingFormValues)[]) {
           const value = payload[key];
 
           if (value === undefined || value === null) {

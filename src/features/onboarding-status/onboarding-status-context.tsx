@@ -71,7 +71,10 @@ export function OnboardingStatusProvider({ children }: { children: ReactNode }) 
     }
   }, [isAuthenticated]);
 
-  // Initial load + reset on login/logout.
+  // Initial load + reset on login/logout. The synchronous setState calls
+  // here are a deliberate provider reset / async-load kickoff, not a
+  // cascading-render pattern.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!isAuthenticated) {
       setStatus(null);
@@ -83,6 +86,7 @@ export function OnboardingStatusProvider({ children }: { children: ReactNode }) 
     setIsLoading(true);
     void refresh();
   }, [isAuthenticated, refresh]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Poll with backoff while the server is working.
   useEffect(() => {

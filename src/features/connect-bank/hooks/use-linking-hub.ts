@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- async loaders invoked from effects set state after awaits; standard fetch-in-effect pattern */
 /**
  * Multi-institution linking hub state (APP-005).
  *

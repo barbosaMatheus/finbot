@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- async loaders invoked from effects set state after awaits; standard fetch-in-effect pattern */
 /**
  * The aggregate-first financial review (APP-008) with corrections and
  * final confirmation (APP-010). Facts and coverage come from the snapshot;

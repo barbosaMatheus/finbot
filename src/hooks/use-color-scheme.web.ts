@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- one-time hydration flag for static web rendering */
 import { useEffect, useState } from 'react';
 import { useColorScheme as useRNColorScheme } from 'react-native';
 
