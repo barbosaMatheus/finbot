@@ -1,7 +1,7 @@
-export type User = {
-  id: string;
-  email: string;
-};
+import type { AuthUser } from '@/api/client';
+
+/** The authenticated user, from the generated contract types. */
+export type User = AuthUser;
 
 export type AuthSession = {
   user: User;

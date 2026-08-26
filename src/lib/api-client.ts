@@ -5,10 +5,17 @@ export class ApiError extends Error {
     message: string,
     readonly status: number,
     readonly details?: unknown,
+    /** Machine-readable code from the API's error envelope, when present. */
+    readonly code?: string,
   ) {
     super(message);
     this.name = 'ApiError';
   }
+}
+
+/** Narrow an unknown error to an ApiError with a specific code. */
+export function isApiErrorCode(error: unknown, code: string): boolean {
+  return error instanceof ApiError && error.code === code;
 }
 
 type ApiFetchOptions = RequestInit & {
@@ -48,15 +55,16 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    const message =
-      typeof payload === 'object' &&
-      payload !== null &&
-      'error' in payload &&
-      typeof payload.error === 'string'
-        ? payload.error
-        : 'Request failed';
+    const envelope =
+      typeof payload === 'object' && payload !== null
+        ? (payload as { error?: unknown; code?: unknown })
+        : {};
 
-    throw new ApiError(message, response.status, payload);
+    const message =
+      typeof envelope.error === 'string' ? envelope.error : 'Request failed';
+    const code = typeof envelope.code === 'string' ? envelope.code : undefined;
+
+    throw new ApiError(message, response.status, payload, code);
   }
 
   return payload as T;
