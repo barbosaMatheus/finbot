@@ -3,6 +3,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -15,7 +16,10 @@ import {
 } from 'react-hook-form';
 
 import { useAuth } from '@/features/auth/use-auth';
-import { submitOnboarding } from '@/features/onboarding/api/onboarding-api';
+import {
+  fetchSavedOnboarding,
+  submitOnboarding,
+} from '@/features/onboarding/api/onboarding-api';
 import {
   getOnboardingSteps,
   type OnboardingStepConfig,
@@ -68,6 +72,52 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     mode: 'onChange',
     reValidateMode: 'onChange',
   });
+
+  // Resume (APP-006): prefill previously saved answers so the wizard picks
+  // up where the user left off. Numeric fields become the form's string
+  // representation; untouched fields keep their defaults.
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void fetchSavedOnboarding()
+      .then((saved) => {
+        if (cancelled || !saved?.payload) {
+          return;
+        }
+
+        const payload = saved.payload as Record<string, unknown>;
+        const initial = createInitialAnswers();
+        const next: OnboardingFormValues = { ...initial };
+
+        for (const key of Object.keys(initial) as Array<keyof OnboardingFormValues>) {
+          const value = payload[key];
+
+          if (value === undefined || value === null) {
+            continue;
+          }
+
+          if (typeof value === 'number') {
+            (next as Record<string, unknown>)[key] = String(value);
+          } else {
+            (next as Record<string, unknown>)[key] = value;
+          }
+        }
+
+        form.reset(next);
+      })
+      .catch(() => {
+        // No saved answers (or a transient failure): start fresh.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const currentStep = steps[stepIndex];
   const currentStepId = currentStep.id;

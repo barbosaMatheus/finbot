@@ -64,6 +64,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: Spacing.two,
     paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.three,
     minHeight: 48,
   },
 });

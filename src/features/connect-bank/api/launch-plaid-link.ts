@@ -43,3 +43,31 @@ export async function launchPlaidLink(
 
   return exchangePublicToken(publicToken);
 }
+
+/**
+ * Update-mode Link session (reauthentication / account selection). No
+ * public-token exchange happens — the Item already exists server-side.
+ */
+export async function launchPlaidLinkSession(
+  linkTokenResult: LinkTokenResult,
+): Promise<'completed' | 'exited'> {
+  const completed = await new Promise<boolean>((resolve, reject) => {
+    createPlaidLinkSession({
+      token: linkTokenResult.linkToken,
+      onSuccess: () => resolve(true),
+      onExit: (exit) => {
+        if (exit.error?.errorMessage) {
+          reject(new Error(exit.error.errorMessage));
+          return;
+        }
+
+        resolve(false);
+      },
+      onEvent: () => {},
+    })
+      .then((session) => session.open())
+      .catch(reject);
+  });
+
+  return completed ? 'completed' : 'exited';
+}

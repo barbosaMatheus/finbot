@@ -57,3 +57,36 @@ export async function launchPlaidLink(
 
   return null;
 }
+
+/**
+ * Update-mode Hosted Link on web: open the hosted session and wait for the
+ * tab to close. Hosted Link cannot call back into this page for update
+ * sessions, so tab-closed is the best completion signal available.
+ */
+export async function launchPlaidLinkSession(
+  linkTokenResult: LinkTokenResult,
+): Promise<'completed' | 'exited'> {
+  const { hostedLinkUrl } = linkTokenResult;
+
+  if (!hostedLinkUrl) {
+    throw new Error('Plaid Hosted Link is unavailable for this session.');
+  }
+
+  const hostedWindow = window.open(hostedLinkUrl, '_blank', 'noopener,noreferrer');
+
+  if (!hostedWindow) {
+    throw new Error('Allow pop-ups for this site, then try again.');
+  }
+
+  const deadline = Date.now() + POLL_TIMEOUT_MS;
+
+  while (Date.now() < deadline) {
+    await wait(POLL_INTERVAL_MS);
+
+    if (hostedWindow.closed) {
+      return 'completed';
+    }
+  }
+
+  return 'exited';
+}

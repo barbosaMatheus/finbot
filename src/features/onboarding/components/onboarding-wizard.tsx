@@ -1,4 +1,3 @@
-import { useRouter } from 'expo-router';
 import { StyleSheet } from 'react-native';
 
 import { ThemedView } from '@/components/themed-view';
@@ -14,6 +13,7 @@ import { PreferencesStep } from '@/features/onboarding/components/preferences-st
 import { SavingsAndDebtStep } from '@/features/onboarding/components/savings-and-debt-step';
 import { WorkAndIncomeStep } from '@/features/onboarding/components/work-and-income-step';
 import { useOnboarding } from '@/features/onboarding/hooks/use-onboarding';
+import { useOnboardingStatus } from '@/features/onboarding-status/onboarding-status-context';
 import type { OnboardingStepId } from '@/features/onboarding/types/onboarding';
 
 function renderStepContent(stepId: OnboardingStepId, accountError: string | null) {
@@ -38,7 +38,7 @@ function renderStepContent(stepId: OnboardingStepId, accountError: string | null
 }
 
 export function OnboardingWizard() {
-  const router = useRouter();
+  const { refresh } = useOnboardingStatus();
   const {
     steps,
     stepIndex,
@@ -59,7 +59,10 @@ export function OnboardingWizard() {
     if (isLastStep) {
       const didComplete = await completeOnboarding();
       if (didComplete) {
-        router.replace('/(connect-bank)');
+        // Saving completes the manual gate only (APP-006). The refreshed
+        // status drives routing — usually into the waiting state while the
+        // financial analysis finishes.
+        await refresh();
       }
       return;
     }
