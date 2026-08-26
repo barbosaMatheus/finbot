@@ -4,14 +4,27 @@ import { useColorScheme } from 'react-native';
 
 import { AuthProvider } from '@/features/auth/auth-context';
 import { useAuth } from '@/features/auth/use-auth';
+import {
+  OnboardingStatusProvider,
+  useOnboardingStatus,
+} from '@/features/onboarding-status/onboarding-status-context';
+import {
+  isLocationValidForPhase,
+  routeForPhase,
+} from '@/features/onboarding-status/routing';
+import { usePushDeepLink } from '@/features/push/use-push-deep-link';
 
 function RootLayoutNav() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { status, isLoading: statusLoading, refresh } = useOnboardingStatus();
   const segments = useSegments();
   const router = useRouter();
 
+  // Push taps refetch status; the guard below routes from the fresh phase.
+  usePushDeepLink(refresh as unknown as () => void);
+
   useEffect(() => {
-    if (isLoading) {
+    if (authLoading) {
       return;
     }
 
@@ -25,12 +38,20 @@ function RootLayoutNav() {
       return;
     }
 
-    // Temporary: after mock login, always enter onboarding.
-    // Later this will check an onboardingCompleted flag from the user record.
-    if (isAuthenticated && inAuthGroup) {
-      router.replace('/(onboarding)');
+    if (!isAuthenticated) {
+      return;
     }
-  }, [isAuthenticated, isLoading, router, segments]);
+
+    // Authenticated: every route decision comes from the server phase
+    // (APP-003). Wait for the first status rather than guessing.
+    if (statusLoading || !status) {
+      return;
+    }
+
+    if (!isLocationValidForPhase(segments, status.phase)) {
+      router.replace(routeForPhase(status.phase).path as never);
+    }
+  }, [authLoading, isAuthenticated, router, segments, status, statusLoading]);
 
   return <Stack screenOptions={{ headerShown: false }} />;
 }
@@ -41,7 +62,9 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <AuthProvider>
-        <RootLayoutNav />
+        <OnboardingStatusProvider>
+          <RootLayoutNav />
+        </OnboardingStatusProvider>
       </AuthProvider>
     </ThemeProvider>
   );

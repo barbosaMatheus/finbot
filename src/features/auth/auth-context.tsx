@@ -9,6 +9,7 @@ import {
 } from 'react';
 
 import { setRefreshSessionHandler } from '@/lib/api-client';
+import { revokePushRegistration } from '@/features/push/push-registration';
 
 import {
   login as loginRequest,
@@ -97,6 +98,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
+      // Revoke this device's push token first, while the session that
+      // authorizes the revocation still exists (APP-009).
+      await revokePushRegistration();
       await logoutRequest();
     } finally {
       setUser(null);
