@@ -8,6 +8,8 @@ import {
   type ReactNode,
 } from 'react';
 
+import { setRefreshSessionHandler } from '@/lib/api-client';
+
 import {
   login as loginRequest,
   logout as logoutRequest,
@@ -61,6 +63,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       cancelled = true;
+    };
+  }, []);
+
+  // Let the API client refresh-and-retry a request whose access token
+  // expired mid-session (APP-004).
+  useEffect(() => {
+    setRefreshSessionHandler(async () => {
+      try {
+        const result = await refreshSessionRequest();
+        setUser(result.user);
+        return true;
+      } catch {
+        setUser(null);
+        return false;
+      }
+    });
+
+    return () => {
+      setRefreshSessionHandler(null);
     };
   }, []);
 

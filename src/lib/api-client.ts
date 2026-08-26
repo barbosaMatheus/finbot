@@ -29,7 +29,20 @@ export function setAccessTokenHeader(token: string | null): void {
   accessTokenHeader = token;
 }
 
-export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
+/**
+ * Installed by the auth layer: attempt a session refresh and report
+ * whether it succeeded. Lets apiFetch retry exactly once on 401 without a
+ * circular import between the API client and the auth feature.
+ */
+let refreshSessionHandler: (() => Promise<boolean>) | null = null;
+
+export function setRefreshSessionHandler(
+  handler: (() => Promise<boolean>) | null,
+): void {
+  refreshSessionHandler = handler;
+}
+
+async function performFetch(path: string, options: ApiFetchOptions): Promise<Response> {
   const { json, headers, ...rest } = options;
   const requestHeaders = new Headers(headers);
 
@@ -41,12 +54,30 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
     requestHeaders.set('Authorization', `Bearer ${accessTokenHeader}`);
   }
 
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+  return fetch(`${getApiBaseUrl()}${path}`, {
     ...rest,
     headers: requestHeaders,
     credentials: 'include',
     body: json !== undefined ? JSON.stringify(json) : rest.body,
   });
+}
+
+export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
+  let response = await performFetch(path, options);
+
+  // Expired access token: refresh once and retry. Auth endpoints are
+  // excluded so a failing refresh can never recurse.
+  if (
+    response.status === 401 &&
+    refreshSessionHandler &&
+    !path.startsWith('/auth/')
+  ) {
+    const refreshed = await refreshSessionHandler().catch(() => false);
+
+    if (refreshed) {
+      response = await performFetch(path, options);
+    }
+  }
 
   if (response.status === 204) {
     return undefined as T;
