@@ -1285,7 +1285,8 @@ export interface operations {
                      *         },
                      *         "startedAt": "2026-08-24T20:00:00Z",
                      *         "reviewReadyAt": null,
-                     *         "retryAllowed": false
+                     *         "retryAllowed": false,
+                     *         "errorCode": null
                      *       },
                      *       "availableActions": [
                      *         "view_waiting",
@@ -1321,6 +1322,7 @@ export interface operations {
                             startedAt: string;
                             reviewReadyAt: string | null;
                             retryAllowed: boolean;
+                            errorCode: string | null;
                         } | null;
                         availableActions: string[];
                         onboardingComplete: boolean;
@@ -1384,6 +1386,7 @@ export interface operations {
                             startedAt: string;
                             reviewReadyAt: string | null;
                             retryAllowed: boolean;
+                            errorCode: string | null;
                         } | null;
                         availableActions: string[];
                         onboardingComplete: boolean;
@@ -1456,6 +1459,11 @@ export interface operations {
                      *           "throughDate": "2026-08-24",
                      *           "observedDays": 174,
                      *           "normalizationMonths": 5.72
+                     *         },
+                     *         "currency": {
+                     *           "primary": "USD",
+                     *           "excludedTransactionCount": 0,
+                     *           "excludedCurrencies": []
                      *         },
                      *         "income": {
                      *           "monthlyIncomeEstimate": 5200,
@@ -1559,6 +1567,11 @@ export interface operations {
                                 throughDate: string;
                                 observedDays: number;
                                 normalizationMonths: number;
+                            };
+                            currency: {
+                                primary: string | null;
+                                excludedTransactionCount: number;
+                                excludedCurrencies: string[];
                             };
                             income: {
                                 monthlyIncomeEstimate: number;
