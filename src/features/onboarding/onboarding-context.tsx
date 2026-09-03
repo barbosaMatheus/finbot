@@ -32,6 +32,10 @@ import {
   type OnboardingFormValues,
 } from '@/features/onboarding/schemas/onboarding';
 import { createInitialAnswers } from '@/features/onboarding/utils/create-initial-answers';
+import {
+  fromManualPayload,
+  toManualPayload,
+} from '@/features/onboarding/utils/manual-payload';
 import { ApiError } from '@/lib/api-client';
 
 type OnboardingContextValue = {
@@ -74,8 +78,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
   });
 
   // Resume (APP-006): prefill previously saved answers so the wizard picks
-  // up where the user left off. Numeric fields become the form's string
-  // representation; untouched fields keep their defaults.
+  // up where the user left off. The payload mapper owns the API → form
+  // shape (amounts back to text, goal detail flattened).
   useEffect(() => {
     if (!isAuthenticated) {
       return;
@@ -89,23 +93,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const payload = saved.payload as Record<string, unknown>;
-        const initial = createInitialAnswers();
-        const next: OnboardingFormValues = { ...initial };
-
-        for (const key of Object.keys(initial) as (keyof OnboardingFormValues)[]) {
-          const value = payload[key];
-
-          if (value === undefined || value === null) {
-            continue;
-          }
-
-          if (typeof value === 'number') {
-            (next as Record<string, unknown>)[key] = String(value);
-          } else {
-            (next as Record<string, unknown>)[key] = value;
-          }
-        }
+        const next: OnboardingFormValues = {
+          ...createInitialAnswers(),
+          ...fromManualPayload(saved.payload),
+        };
 
         form.reset(next);
       })
@@ -203,7 +194,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setAccountError(null);
 
     try {
-      await submitOnboarding(parsed.data);
+      await submitOnboarding(toManualPayload(parsed.data));
       setIsComplete(true);
       return true;
     } catch (err) {

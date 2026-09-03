@@ -12,36 +12,36 @@ export const CREATE_ACCOUNT_STEP: OnboardingStepConfig = {
   description: 'Set an email and password so you can sign back in anytime.',
 };
 
+/**
+ * The five profile screens. Everything the bank connection can answer has
+ * already been answered by the time the user gets here; these ask the rest.
+ */
 export const ONBOARDING_PROFILE_STEPS: OnboardingStepConfig[] = [
   {
     id: 'aboutYou',
-    title: 'About you',
-    description: 'Tell us a bit about yourself and your household.',
+    title: 'A little about you',
+    description: 'Just enough to know who we are talking to.',
   },
   {
-    id: 'workAndIncome',
-    title: 'Work & income',
-    description: 'Help us understand how money comes in each month.',
+    id: 'income',
+    title: 'Your income',
+    description: 'We can see what came in. Only you know what to expect next.',
   },
   {
-    id: 'monthlyCosts',
-    title: 'Monthly costs',
-    description: 'Estimate your regular spending so we can map your budget.',
+    id: 'cantSee',
+    title: 'What we can’t see',
+    description:
+      'Money that never touches the accounts you connected — paid in cash, or from somewhere else.',
   },
   {
-    id: 'savingsAndDebt',
-    title: 'Savings & debt',
-    description: 'These are strong signals of financial resilience.',
+    id: 'goal',
+    title: 'What do you want to change?',
+    description: 'One main thing. You can change it later.',
   },
   {
-    id: 'goalsAndPools',
-    title: 'Goals & money pools',
-    description: 'Choose what to focus on and how to divide your money.',
-  },
-  {
-    id: 'preferences',
-    title: 'Preferences',
-    description: 'A few final details to tailor your guidance.',
+    id: 'coaching',
+    title: 'How should I coach you?',
+    description: 'Set the pace, and tell us anything else worth knowing.',
   },
 ];
 

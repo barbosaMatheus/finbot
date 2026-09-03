@@ -4,10 +4,12 @@ import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { DateOfBirthPicker } from '@/features/onboarding/components/date-of-birth-picker';
-import { OnboardingChoiceButton } from '@/features/onboarding/components/onboarding-choice-button';
+import { OnboardingChoiceGrid } from '@/features/onboarding/components/onboarding-choice-grid';
 import { OnboardingField } from '@/features/onboarding/components/onboarding-field';
-import { MARITAL_STATUS_OPTIONS } from '@/features/onboarding/constants/options';
+import {
+  DEPENDENTS_OPTIONS,
+  SHARED_ACCOUNTS_OPTIONS,
+} from '@/features/onboarding/constants/options';
 import type { OnboardingFormValues } from '@/features/onboarding/schemas/onboarding';
 
 export function AboutYouStep() {
@@ -17,16 +19,16 @@ export function AboutYouStep() {
     <ThemedView style={styles.container}>
       <Controller
         control={control}
-        name="fullName"
+        name="firstName"
         render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
           <OnboardingField
             autoCapitalize="words"
-            autoComplete="name"
+            autoComplete="given-name"
             error={error?.message}
-            label="Full name"
+            label="What should I call you?"
             onBlur={onBlur}
             onChangeText={onChange}
-            placeholder="e.g. Jane Doe"
+            placeholder="Your first name"
             value={value}
           />
         )}
@@ -34,26 +36,18 @@ export function AboutYouStep() {
 
       <Controller
         control={control}
-        name="dateOfBirth"
-        render={({ field: { onChange, value }, fieldState: { error } }) => (
-          <DateOfBirthPicker error={error?.message} onChange={onChange} value={value} />
-        )}
-      />
-
-      <Controller
-        control={control}
-        name="maritalStatus"
+        name="dependentsCount"
         render={({ field: { onChange, value }, fieldState: { error } }) => (
           <ThemedView style={styles.section}>
-            <ThemedText type="smallBold">Marital status</ThemedText>
-            {MARITAL_STATUS_OPTIONS.map((option) => (
-              <OnboardingChoiceButton
-                key={option.value}
-                label={option.label}
-                selected={value === option.value}
-                onPress={() => onChange(option.value)}
-              />
-            ))}
+            <ThemedText type="smallBold">
+              How many people depend on your income, besides you?
+            </ThemedText>
+            <OnboardingChoiceGrid
+              columns={2}
+              isSelected={(option) => option === value}
+              onSelect={onChange}
+              options={DEPENDENTS_OPTIONS}
+            />
             {error?.message ? (
               <ThemedText type="small" style={styles.error}>
                 {error.message}
@@ -65,17 +59,21 @@ export function AboutYouStep() {
 
       <Controller
         control={control}
-        name="dependentsCount"
-        render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
-          <OnboardingField
-            error={error?.message}
-            keyboardType="number-pad"
-            label="Dependents who rely on your income"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            placeholder="e.g. 0"
-            value={value}
-          />
+        name="sharedAccounts"
+        render={({ field: { onChange, value } }) => (
+          <ThemedView style={styles.section}>
+            <ThemedText type="smallBold">
+              Does anyone else spend from the accounts you connected?
+            </ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              A joint account looks like one person to us. Only you know otherwise.
+            </ThemedText>
+            <OnboardingChoiceGrid
+              isSelected={(option) => option === value}
+              onSelect={onChange}
+              options={SHARED_ACCOUNTS_OPTIONS}
+            />
+          </ThemedView>
         )}
       />
     </ThemedView>

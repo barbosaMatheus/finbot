@@ -3,15 +3,14 @@ import { StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { AboutYouStep } from '@/features/onboarding/components/about-you-step';
+import { CantSeeStep } from '@/features/onboarding/components/cant-see-step';
+import { CoachingStep } from '@/features/onboarding/components/coaching-step';
 import { CreateAccountStep } from '@/features/onboarding/components/create-account-step';
-import { GoalsAndPoolsStep } from '@/features/onboarding/components/goals-and-pools-step';
-import { MonthlyCostsStep } from '@/features/onboarding/components/monthly-costs-step';
+import { GoalStep } from '@/features/onboarding/components/goal-step';
+import { IncomeStep } from '@/features/onboarding/components/income-step';
 import { OnboardingNavFooter } from '@/features/onboarding/components/onboarding-nav-footer';
 import { OnboardingProgressBar } from '@/features/onboarding/components/onboarding-progress-bar';
 import { OnboardingStepHeader } from '@/features/onboarding/components/onboarding-step-header';
-import { PreferencesStep } from '@/features/onboarding/components/preferences-step';
-import { SavingsAndDebtStep } from '@/features/onboarding/components/savings-and-debt-step';
-import { WorkAndIncomeStep } from '@/features/onboarding/components/work-and-income-step';
 import { useOnboarding } from '@/features/onboarding/hooks/use-onboarding';
 import { useOnboardingStatus } from '@/features/onboarding-status/onboarding-status-context';
 import type { OnboardingStepId } from '@/features/onboarding/types/onboarding';
@@ -22,16 +21,14 @@ function renderStepContent(stepId: OnboardingStepId, accountError: string | null
       return <CreateAccountStep formError={accountError} />;
     case 'aboutYou':
       return <AboutYouStep />;
-    case 'workAndIncome':
-      return <WorkAndIncomeStep />;
-    case 'monthlyCosts':
-      return <MonthlyCostsStep />;
-    case 'savingsAndDebt':
-      return <SavingsAndDebtStep />;
-    case 'goalsAndPools':
-      return <GoalsAndPoolsStep />;
-    case 'preferences':
-      return <PreferencesStep formError={accountError} />;
+    case 'income':
+      return <IncomeStep />;
+    case 'cantSee':
+      return <CantSeeStep />;
+    case 'goal':
+      return <GoalStep />;
+    case 'coaching':
+      return <CoachingStep formError={accountError} />;
     default:
       return null;
   }

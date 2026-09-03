@@ -1,25 +1,35 @@
 import { z } from 'zod';
 
 import {
-  employmentStatusSchema,
-  financialGoalSchema,
-  maritalStatusSchema,
-  moneyPoolOptionSchema,
-  riskComfortSchema,
-  subscriptionServiceSchema,
+  coachingPaceSchema,
+  dependentsChoiceSchema,
+  incomePatternSchema,
+  obligationCadenceSchema,
+  obligationKindSchema,
+  primaryGoalSchema,
+  secondaryGoalSchema,
+  upcomingEventSchema,
+  type DeclaredObligationFormValue,
   type OnboardingAnswers,
   type OnboardingFormValues,
   type OnboardingStepId,
 } from '@/features/onboarding/schemas/onboarding';
 
-export type { OnboardingAnswers, OnboardingFormValues, OnboardingStepId };
+export type {
+  DeclaredObligationFormValue,
+  OnboardingAnswers,
+  OnboardingFormValues,
+  OnboardingStepId,
+};
 
-export type MaritalStatus = z.infer<typeof maritalStatusSchema>;
-export type EmploymentStatus = z.infer<typeof employmentStatusSchema>;
-export type SubscriptionService = z.infer<typeof subscriptionServiceSchema>;
-export type FinancialGoal = z.infer<typeof financialGoalSchema>;
-export type MoneyPoolOption = z.infer<typeof moneyPoolOptionSchema>;
-export type RiskComfort = z.infer<typeof riskComfortSchema>;
+export type IncomePattern = z.infer<typeof incomePatternSchema>;
+export type ObligationKind = z.infer<typeof obligationKindSchema>;
+export type ObligationCadence = z.infer<typeof obligationCadenceSchema>;
+export type UpcomingEvent = z.infer<typeof upcomingEventSchema>;
+export type PrimaryGoal = z.infer<typeof primaryGoalSchema>;
+export type SecondaryGoal = z.infer<typeof secondaryGoalSchema>;
+export type CoachingPace = z.infer<typeof coachingPaceSchema>;
+export type DependentsChoice = z.infer<typeof dependentsChoiceSchema>;
 
 export type OnboardingFieldKey = keyof OnboardingFormValues;
 

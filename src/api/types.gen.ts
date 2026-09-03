@@ -1149,7 +1149,31 @@ export interface operations {
                     "application/json": {
                         saved: {
                             payload: {
-                                [key: string]: unknown;
+                                firstName: string;
+                                dependentsCount: number;
+                                sharedAccounts: boolean;
+                                /** @enum {string} */
+                                incomePattern: "steady" | "varies" | "unpredictable" | "none";
+                                declaredObligations: {
+                                    /** @enum {string} */
+                                    kind: "rent_to_person" | "family_loan" | "medical_plan" | "child_support" | "owe_friend" | "other";
+                                    label: string | null;
+                                    amount: number;
+                                    /** @enum {string} */
+                                    cadence: "monthly" | "weekly" | "one_time";
+                                }[];
+                                upcomingEvents: ("moving" | "wedding" | "new_baby" | "car" | "tuition" | "big_trip" | "medical" | "other")[];
+                                /** @enum {string} */
+                                primaryGoal: "stop_overspending" | "pay_down_debt" | "build_cushion" | "save_for_specific" | "understand_spending" | "not_sure";
+                                secondaryGoals: ("stop_overspending" | "pay_down_debt" | "build_cushion" | "save_for_specific" | "understand_spending")[];
+                                goalDetail: {
+                                    description: string;
+                                    targetAmount: number | null;
+                                    targetMonth: string | null;
+                                } | null;
+                                /** @enum {string} */
+                                coachingPace: "ease_in" | "balanced" | "push";
+                                additionalContext: string;
                             };
                             updatedAt: string;
                         } | null;
@@ -1183,26 +1207,30 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    fullName: string;
-                    dateOfBirth: string;
-                    /** @enum {string} */
-                    maritalStatus: "single" | "married" | "domestic_partnership" | "divorced" | "widowed" | "prefer_not_to_say";
+                    firstName: string;
                     dependentsCount: number;
+                    sharedAccounts: boolean;
                     /** @enum {string} */
-                    employmentStatus: "full_time" | "part_time" | "self_employed" | "unemployed" | "retired" | "student";
-                    monthlyTakeHomeIncome: number;
-                    monthlyHousingCosts: number;
-                    monthlyFoodSpend: number;
-                    monthlyTransportationCosts: number;
-                    subscriptions: ("netflix" | "disney_hulu" | "amazon_prime" | "paramount" | "apple" | "xbox" | "playstation" | "nintendo" | "none")[];
-                    monthlyEntertainmentSubscriptionsCosts?: number;
-                    savingsAndEmergencyFunds: number;
-                    totalDebt: number;
-                    factorInDebtInterest: boolean;
-                    financialGoals: ("emergency_fund" | "pay_off_debt" | "save_for_retirement" | "save_for_home" | "invest_more" | "reduce_spending")[];
-                    additionalMoneyPools: ("vacation" | "miscellaneous" | "emergency" | "savings" | "investing")[];
+                    incomePattern: "steady" | "varies" | "unpredictable" | "none";
+                    declaredObligations: {
+                        /** @enum {string} */
+                        kind: "rent_to_person" | "family_loan" | "medical_plan" | "child_support" | "owe_friend" | "other";
+                        label: string | null;
+                        amount: number;
+                        /** @enum {string} */
+                        cadence: "monthly" | "weekly" | "one_time";
+                    }[];
+                    upcomingEvents: ("moving" | "wedding" | "new_baby" | "car" | "tuition" | "big_trip" | "medical" | "other")[];
                     /** @enum {string} */
-                    riskComfort: "conservative" | "moderate" | "aggressive";
+                    primaryGoal: "stop_overspending" | "pay_down_debt" | "build_cushion" | "save_for_specific" | "understand_spending" | "not_sure";
+                    secondaryGoals: ("stop_overspending" | "pay_down_debt" | "build_cushion" | "save_for_specific" | "understand_spending")[];
+                    goalDetail: {
+                        description: string;
+                        targetAmount: number | null;
+                        targetMonth: string | null;
+                    } | null;
+                    /** @enum {string} */
+                    coachingPace: "ease_in" | "balanced" | "push";
                     additionalContext: string;
                 };
             };

@@ -1,80 +1,110 @@
 import type {
-  EmploymentStatus,
-  FinancialGoal,
-  MaritalStatus,
-  MoneyPoolOption,
-  RiskComfort,
-  SubscriptionService,
+  CoachingPace,
+  DependentsChoice,
+  IncomePattern,
+  ObligationCadence,
+  ObligationKind,
+  PrimaryGoal,
+  SecondaryGoal,
+  UpcomingEvent,
 } from '@/features/onboarding/types/onboarding';
 
-export type SelectOption<T extends string> = {
+export type SelectOption<T> = {
   value: T;
   label: string;
   description?: string;
 };
 
-export const MARITAL_STATUS_OPTIONS: SelectOption<MaritalStatus>[] = [
-  { value: 'single', label: 'Single' },
-  { value: 'married', label: 'Married' },
-  { value: 'domestic_partnership', label: 'Domestic partnership' },
-  { value: 'divorced', label: 'Divorced' },
-  { value: 'widowed', label: 'Widowed' },
-  { value: 'prefer_not_to_say', label: 'Prefer not to say' },
+/**
+ * Every label is plain language. No budgeting vocabulary: this audience has
+ * never budgeted, or tried and drifted, and the wizard must not assume
+ * either.
+ */
+
+export const DEPENDENTS_OPTIONS: SelectOption<DependentsChoice>[] = [
+  { value: '0', label: 'Just me' },
+  { value: '1', label: 'One other person' },
+  { value: '2', label: 'Two other people' },
+  { value: '3', label: 'Three or more' },
 ];
 
-export const EMPLOYMENT_STATUS_OPTIONS: SelectOption<EmploymentStatus>[] = [
-  { value: 'full_time', label: 'Full-time' },
-  { value: 'part_time', label: 'Part-time' },
-  { value: 'self_employed', label: 'Self-employed' },
-  { value: 'unemployed', label: 'Unemployed' },
-  { value: 'retired', label: 'Retired' },
-  { value: 'student', label: 'Student' },
-];
-
-export const SUBSCRIPTION_OPTIONS: SelectOption<SubscriptionService>[] = [
-  { value: 'netflix', label: 'Netflix' },
-  { value: 'disney_hulu', label: 'Disney / Hulu' },
-  { value: 'amazon_prime', label: 'Amazon Prime' },
-  { value: 'paramount', label: 'Paramount+' },
-  { value: 'apple', label: 'Apple' },
-  { value: 'xbox', label: 'Xbox' },
-  { value: 'playstation', label: 'PlayStation' },
-  { value: 'nintendo', label: 'Nintendo' },
-  { value: 'none', label: 'None of these' },
-];
-
-export const FINANCIAL_GOAL_OPTIONS: SelectOption<FinancialGoal>[] = [
-  { value: 'emergency_fund', label: 'Build emergency fund' },
-  { value: 'pay_off_debt', label: 'Pay off debt' },
-  { value: 'save_for_retirement', label: 'Save for retirement' },
-  { value: 'save_for_home', label: 'Save for a home' },
+export const SHARED_ACCOUNTS_OPTIONS: SelectOption<boolean>[] = [
+  { value: false, label: 'Just me' },
   {
-    value: 'invest_more',
-    label: 'Invest more',
-    description: 'Increase money available for investing (not investment advice).',
+    value: true,
+    label: 'Yes — a partner or family member uses them too',
+    description: 'We’ll keep in mind that not every purchase is yours.',
   },
-  { value: 'reduce_spending', label: 'Reduce spending' },
 ];
 
-export const FIXED_MONEY_POOLS = ['Bills', 'Groceries', 'Other cycled costs'] as const;
+export const INCOME_PATTERN_OPTIONS: SelectOption<IncomePattern>[] = [
+  { value: 'steady', label: 'Yes, it’s steady' },
+  { value: 'varies', label: 'It varies — some months are better than others' },
+  { value: 'unpredictable', label: 'It’s unpredictable' },
+  { value: 'none', label: 'I don’t have regular income right now' },
+];
 
-export const ADDITIONAL_MONEY_POOL_OPTIONS: SelectOption<MoneyPoolOption>[] = [
-  { value: 'vacation', label: 'Vacation' },
-  { value: 'miscellaneous', label: 'Miscellaneous', description: 'Hobbies, gifts, and similar.' },
+export const OBLIGATION_KIND_OPTIONS: SelectOption<ObligationKind>[] = [
+  { value: 'rent_to_person', label: 'Rent to a person' },
+  { value: 'family_loan', label: 'Family loan' },
+  { value: 'medical_plan', label: 'Medical payment plan' },
+  { value: 'child_support', label: 'Child support' },
+  { value: 'owe_friend', label: 'Owe a friend' },
+  { value: 'other', label: 'Something else' },
+];
+
+export const OBLIGATION_CADENCE_OPTIONS: SelectOption<ObligationCadence>[] = [
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'weekly', label: 'Weekly' },
+  { value: 'one_time', label: 'One-time' },
+];
+
+export const UPCOMING_EVENT_OPTIONS: SelectOption<UpcomingEvent>[] = [
+  { value: 'moving', label: 'Moving' },
+  { value: 'wedding', label: 'Wedding' },
+  { value: 'new_baby', label: 'New baby' },
+  { value: 'car', label: 'Car repair or replacement' },
+  { value: 'tuition', label: 'Tuition' },
+  { value: 'big_trip', label: 'Big trip' },
+  { value: 'medical', label: 'Medical' },
+  { value: 'other', label: 'Something else' },
+];
+
+export const PRIMARY_GOAL_OPTIONS: SelectOption<PrimaryGoal>[] = [
+  { value: 'stop_overspending', label: 'Stop spending more than I make' },
+  { value: 'pay_down_debt', label: 'Pay down what I owe' },
+  { value: 'build_cushion', label: 'Build up a cushion so surprises don’t wreck me' },
+  { value: 'save_for_specific', label: 'Save for something specific' },
+  { value: 'understand_spending', label: 'Just help me understand where my money goes' },
   {
-    value: 'emergency',
-    label: 'Emergency',
-    description: 'Capped pool for out-of-cycle costs.',
+    value: 'not_sure',
+    label: 'I’m not sure — help me figure it out',
+    description: 'An honest answer. We’ll start by showing you what we see.',
   },
-  { value: 'savings', label: 'Savings' },
-  { value: 'investing', label: 'Investing' },
 ];
 
-export const RISK_COMFORT_OPTIONS: SelectOption<RiskComfort>[] = [
-  { value: 'conservative', label: 'Conservative' },
-  { value: 'moderate', label: 'Moderate' },
-  { value: 'aggressive', label: 'Aggressive' },
+/** The same choices minus "not sure", which only makes sense as the main goal. */
+export const SECONDARY_GOAL_OPTIONS: SelectOption<SecondaryGoal>[] = PRIMARY_GOAL_OPTIONS.filter(
+  (option): option is SelectOption<SecondaryGoal> => option.value !== 'not_sure',
+);
+
+export const COACHING_PACE_OPTIONS: SelectOption<CoachingPace>[] = [
+  {
+    value: 'ease_in',
+    label: 'Ease me in',
+    description: 'Small changes I’m confident I can hit.',
+  },
+  { value: 'balanced', label: 'Balanced' },
+  {
+    value: 'push',
+    label: 'Push me',
+    description: 'I want this to move fast.',
+  },
 ];
 
-export const REQUIRED_GOAL_COUNT = 3;
-export const REQUIRED_ADDITIONAL_POOL_COUNT = 3;
+export const CONTEXT_EXAMPLES =
+  'For example: “I send money to my parents every month.” “My hours just got cut.” ' +
+  '“I’m saving for a ring but my partner uses this account.” “I have a dog with ongoing vet bills.”';
+
+export const MAX_SECONDARY_GOALS = 2;
+export const MAX_DECLARED_OBLIGATIONS = 20;

@@ -1,26 +1,27 @@
 import type { OnboardingFormValues } from '@/features/onboarding/schemas/onboarding';
 
+/**
+ * Defaults are real answers where the design gives one ("just me",
+ * "balanced"), so those steps never block; choice fields with no sensible
+ * default start null and the step schema asks for them.
+ */
 export function createInitialAnswers(): OnboardingFormValues {
   return {
     email: '',
     password: '',
     confirmPassword: '',
-    fullName: '',
-    dateOfBirth: '',
-    maritalStatus: null,
-    dependentsCount: '',
-    employmentStatus: null,
-    monthlyTakeHomeIncome: '',
-    monthlyHousingCosts: '',
-    monthlyFoodSpend: '',
-    monthlyTransportationCosts: '',
-    savingsAndEmergencyFunds: '',
-    totalDebt: '',
-    factorInDebtInterest: null,
-    subscriptions: [],
-    financialGoals: [],
-    additionalMoneyPools: [],
-    riskComfort: null,
+    firstName: '',
+    dependentsCount: '0',
+    sharedAccounts: false,
+    incomePattern: null,
+    declaredObligations: [],
+    upcomingEvents: [],
+    primaryGoal: null,
+    goalDescription: '',
+    goalTargetAmount: '',
+    goalTargetMonth: '',
+    secondaryGoals: [],
+    coachingPace: 'balanced',
     additionalContext: '',
   };
 }
