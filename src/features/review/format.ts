@@ -22,6 +22,8 @@ export function formatCadence(cadence: string): string {
       return 'Monthly';
     case 'quarterly':
       return 'Quarterly';
+    case 'semiannual':
+      return 'Every 6 months';
     case 'annual':
       return 'Yearly';
     default:

@@ -65,7 +65,7 @@ export function ConnectBankScreen() {
           </ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.subtitle}>
             Connect your checking account and every card you spend with. FinBot
-            reads up to 6 months of history to work out your income, bills, and
+            reads up to two years of history to work out your income, bills, and
             spending — so you won&apos;t have to guess at numbers later.
           </ThemedText>
         </ThemedView>

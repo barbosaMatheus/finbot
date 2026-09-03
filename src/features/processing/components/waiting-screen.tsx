@@ -70,7 +70,7 @@ export function WaitingScreen() {
           <ThemedText themeColor="textSecondary" style={styles.subtitle}>
             {isClassifying
               ? 'FinBot is classifying your transactions and building your financial review.'
-              : 'Your bank is sending FinBot up to 6 months of transaction history. This can take a few minutes — feel free to close the app.'}
+              : 'Your bank is sending FinBot up to two years of transaction history. This can take several minutes — feel free to close the app.'}
           </ThemedText>
         </ThemedView>
 

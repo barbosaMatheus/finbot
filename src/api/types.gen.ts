@@ -1483,11 +1483,13 @@ export interface operations {
                      *         "availableToSpend": 7400
                      *       },
                      *       "fullFacts": {
-                     *         "ruleVersion": "facts-v1",
+                     *         "ruleVersion": "facts-v2",
                      *         "period": {
                      *           "oldestObservedDate": "2026-03-04",
                      *           "throughDate": "2026-08-24",
                      *           "observedDays": 174,
+                     *           "spendWindowDays": 174,
+                     *           "spendWindowStart": "2026-03-04",
                      *           "normalizationMonths": 5.72
                      *         },
                      *         "currency": {
@@ -1596,6 +1598,8 @@ export interface operations {
                                 oldestObservedDate: string | null;
                                 throughDate: string;
                                 observedDays: number;
+                                spendWindowDays: number;
+                                spendWindowStart: string | null;
                                 normalizationMonths: number;
                             };
                             currency: {
