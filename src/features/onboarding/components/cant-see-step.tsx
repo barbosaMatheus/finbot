@@ -1,5 +1,5 @@
 import { Controller, useFieldArray, useFormContext, useWatch } from 'react-hook-form';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, ScrollView, StyleSheet } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -18,6 +18,10 @@ import type { UpcomingEvent } from '@/features/onboarding/types/onboarding';
 import { useTheme } from '@/hooks/use-theme';
 
 const ERROR_RED = '#e5484d';
+
+/** With this many bills on screen the list caps its height and scrolls. */
+const OBLIGATION_LIST_CAP_AT = 2;
+const OBLIGATION_LIST_MAX_HEIGHT = 520;
 
 type ObligationRowProps = {
   index: number;
@@ -112,14 +116,25 @@ function ObligationRow({ index, onRemove }: ObligationRowProps) {
  */
 export function CantSeeStep() {
   const theme = useTheme();
-  const { control } = useFormContext<OnboardingFormValues>();
+  const { control, setValue } = useFormContext<OnboardingFormValues>();
   const { fields, append, remove } = useFieldArray({ control, name: 'declaredObligations' });
+  const upcomingEvents = useWatch({ control, name: 'upcomingEvents' });
+  const showEventNote = upcomingEvents.includes('other');
 
   function toggleEvent(current: UpcomingEvent[], value: UpcomingEvent): UpcomingEvent[] {
-    return current.includes(value)
-      ? current.filter((event) => event !== value)
-      : [...current, value];
+    if (current.includes(value)) {
+      if (value === 'other') {
+        setValue('upcomingEventNote', '');
+      }
+      return current.filter((event) => event !== value);
+    }
+
+    return [...current, value];
   }
+
+  const rows = fields.map((field, index) => (
+    <ObligationRow key={field.id} index={index} onRemove={() => remove(index)} />
+  ));
 
   return (
     <ThemedView style={styles.container}>
@@ -132,9 +147,17 @@ export function CantSeeStep() {
           a medical payment plan, money you owe a friend. Optional.
         </ThemedText>
 
-        {fields.map((field, index) => (
-          <ObligationRow key={field.id} index={index} onRemove={() => remove(index)} />
-        ))}
+        {fields.length >= OBLIGATION_LIST_CAP_AT ? (
+          <ScrollView
+            contentContainerStyle={styles.listContent}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator
+            style={styles.cappedList}>
+            {rows}
+          </ScrollView>
+        ) : (
+          <ThemedView style={styles.listContent}>{rows}</ThemedView>
+        )}
 
         {fields.length < MAX_DECLARED_OBLIGATIONS ? (
           <Pressable
@@ -177,7 +200,10 @@ export function CantSeeStep() {
             <OnboardingChoiceButton
               label="Nothing I know of"
               selected={value.length === 0}
-              onPress={() => onChange([])}
+              onPress={() => {
+                setValue('upcomingEventNote', '');
+                onChange([]);
+              }}
             />
             {error?.message ? (
               <ThemedText type="small" style={styles.error}>
@@ -187,6 +213,24 @@ export function CantSeeStep() {
           </ThemedView>
         )}
       />
+
+      {showEventNote ? (
+        <Controller
+          control={control}
+          name="upcomingEventNote"
+          render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => (
+            <OnboardingField
+              autoFocus
+              error={error?.message}
+              label="What’s coming up?"
+              onBlur={onBlur}
+              onChangeText={onChange}
+              placeholder="e.g. My lease renews at a higher rent"
+              value={value}
+            />
+          )}
+        />
+      ) : null}
     </ThemedView>
   );
 }
@@ -197,6 +241,12 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: Spacing.two,
+  },
+  listContent: {
+    gap: Spacing.two,
+  },
+  cappedList: {
+    maxHeight: OBLIGATION_LIST_MAX_HEIGHT,
   },
   row: {
     gap: Spacing.two,

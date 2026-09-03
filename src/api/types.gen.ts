@@ -1163,6 +1163,7 @@ export interface operations {
                                     cadence: "monthly" | "weekly" | "one_time";
                                 }[];
                                 upcomingEvents: ("moving" | "wedding" | "new_baby" | "car" | "tuition" | "big_trip" | "medical" | "other")[];
+                                upcomingEventNote: string | null;
                                 /** @enum {string} */
                                 primaryGoal: "stop_overspending" | "pay_down_debt" | "build_cushion" | "save_for_specific" | "understand_spending" | "not_sure";
                                 secondaryGoals: ("stop_overspending" | "pay_down_debt" | "build_cushion" | "save_for_specific" | "understand_spending")[];
@@ -1221,6 +1222,7 @@ export interface operations {
                         cadence: "monthly" | "weekly" | "one_time";
                     }[];
                     upcomingEvents: ("moving" | "wedding" | "new_baby" | "car" | "tuition" | "big_trip" | "medical" | "other")[];
+                    upcomingEventNote: string | null;
                     /** @enum {string} */
                     primaryGoal: "stop_overspending" | "pay_down_debt" | "build_cushion" | "save_for_specific" | "understand_spending" | "not_sure";
                     secondaryGoals: ("stop_overspending" | "pay_down_debt" | "build_cushion" | "save_for_specific" | "understand_spending")[];

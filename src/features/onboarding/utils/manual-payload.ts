@@ -29,6 +29,10 @@ export function toManualPayload(answers: OnboardingAnswers): ManualOnboardingPay
       cadence: obligation.cadence,
     })),
     upcomingEvents: answers.upcomingEvents,
+    upcomingEventNote:
+      answers.upcomingEvents.includes('other') && answers.upcomingEventNote.trim()
+        ? answers.upcomingEventNote.trim()
+        : null,
     primaryGoal: answers.primaryGoal,
     secondaryGoals: answers.secondaryGoals,
     goalDetail: saving
@@ -65,6 +69,7 @@ export function fromManualPayload(payload: SavedPayload): Partial<OnboardingForm
       cadence: obligation.cadence,
     })),
     upcomingEvents: payload.upcomingEvents,
+    upcomingEventNote: payload.upcomingEventNote ?? '',
     primaryGoal: payload.primaryGoal,
     goalDescription: payload.goalDetail?.description ?? '',
     goalTargetAmount: amountToText(payload.goalDetail?.targetAmount),

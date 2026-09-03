@@ -16,6 +16,7 @@ export function createInitialAnswers(): OnboardingFormValues {
     incomePattern: null,
     declaredObligations: [],
     upcomingEvents: [],
+    upcomingEventNote: '',
     primaryGoal: null,
     goalDescription: '',
     goalTargetAmount: '',

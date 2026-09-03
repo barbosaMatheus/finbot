@@ -4,12 +4,9 @@ import { StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { OnboardingChoiceGrid } from '@/features/onboarding/components/onboarding-choice-grid';
 import { OnboardingField } from '@/features/onboarding/components/onboarding-field';
-import {
-  COACHING_PACE_OPTIONS,
-  CONTEXT_EXAMPLES,
-} from '@/features/onboarding/constants/options';
+import { PaceSlider } from '@/features/onboarding/components/pace-slider';
+import { CONTEXT_EXAMPLES } from '@/features/onboarding/constants/options';
 import type { OnboardingFormValues } from '@/features/onboarding/schemas/onboarding';
 
 type CoachingStepProps = {
@@ -32,11 +29,10 @@ export function CoachingStep({ formError }: CoachingStepProps) {
         render={({ field: { onChange, value } }) => (
           <ThemedView style={styles.section}>
             <ThemedText type="smallBold">How hard should I push?</ThemedText>
-            <OnboardingChoiceGrid
-              isSelected={(option) => option === value}
-              onSelect={onChange}
-              options={COACHING_PACE_OPTIONS}
-            />
+            <ThemedText type="small" themeColor="textSecondary">
+              Drag the handle, or tap a label.
+            </ThemedText>
+            <PaceSlider value={value} onChange={onChange} />
           </ThemedView>
         )}
       />

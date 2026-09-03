@@ -134,6 +134,8 @@ export const incomeSchema = z.object({
 export const cantSeeSchema = z.object({
   declaredObligations: z.array(declaredObligationFormSchema).max(20),
   upcomingEvents: z.array(upcomingEventSchema).max(8),
+  /** Free text for "Something else"; only sent when 'other' is selected. */
+  upcomingEventNote: z.string().trim().max(120, 'Keep it under 120 characters.'),
 });
 
 type GoalShape = {
@@ -218,7 +220,7 @@ export const ONBOARDING_STEP_FIELDS: Record<
   createAccount: ['email', 'password', 'confirmPassword'],
   aboutYou: ['firstName', 'dependentsCount', 'sharedAccounts'],
   income: ['incomePattern'],
-  cantSee: ['declaredObligations', 'upcomingEvents'],
+  cantSee: ['declaredObligations', 'upcomingEvents', 'upcomingEventNote'],
   goal: [
     'primaryGoal',
     'goalDescription',
