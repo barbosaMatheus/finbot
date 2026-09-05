@@ -1514,10 +1514,11 @@ export interface operations {
                      *         "monthlyIncomeEstimate": 5200,
                      *         "averageMonthlyEconomicSpend": 3410,
                      *         "averageMonthlyCashObligations": 3890,
+                     *         "declaredObligationsMonthly": 0,
                      *         "availableToSpend": 7400
                      *       },
                      *       "fullFacts": {
-                     *         "ruleVersion": "facts-v2",
+                     *         "ruleVersion": "facts-v3",
                      *         "period": {
                      *           "oldestObservedDate": "2026-03-04",
                      *           "throughDate": "2026-08-24",
@@ -1549,7 +1550,12 @@ export interface operations {
                      *           "components": {
                      *             "netEconomicSpendMonthly": 3410,
                      *             "debtPaymentsMonthly": 0,
-                     *             "externalCardPaymentsMonthly": 480
+                     *             "externalCardPaymentsMonthly": 480,
+                     *             "declaredObligationsMonthly": 0
+                     *           },
+                     *           "declaredOneTime": {
+                     *             "total": 0,
+                     *             "count": 0
                      *           }
                      *         },
                      *         "balances": {
@@ -1624,6 +1630,7 @@ export interface operations {
                             monthlyIncomeEstimate: number;
                             averageMonthlyEconomicSpend: number;
                             averageMonthlyCashObligations: number;
+                            declaredObligationsMonthly: number;
                             availableToSpend: number;
                         };
                         fullFacts: {
@@ -1674,6 +1681,11 @@ export interface operations {
                                     netEconomicSpendMonthly: number;
                                     debtPaymentsMonthly: number;
                                     externalCardPaymentsMonthly: number;
+                                    declaredObligationsMonthly: number;
+                                };
+                                declaredOneTime: {
+                                    total: number;
+                                    count: number;
                                 };
                             };
                             balances: {
