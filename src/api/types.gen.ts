@@ -4129,7 +4129,7 @@ export interface operations {
             content: {
                 "application/json": {
                     /** @enum {string} */
-                    kind: "got_in_the_way" | "whats_been_hard";
+                    kind: "got_in_the_way" | "whats_been_hard" | "heads_up";
                     text: string;
                     category?: string | null;
                     start?: string | null;
@@ -4149,7 +4149,7 @@ export interface operations {
                         id: string;
                         periodId: string | null;
                         /** @enum {string} */
-                        kind: "got_in_the_way" | "whats_been_hard";
+                        kind: "got_in_the_way" | "whats_been_hard" | "heads_up";
                         attribution: ("one_off" | "structural") | null;
                         attributed: {
                             category: string;

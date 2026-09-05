@@ -36,6 +36,20 @@ export default function AccountScreen() {
             </ThemedView>
           </ThemedView>
 
+          <Pressable
+            accessibilityLabel="Plan settings"
+            accessibilityRole="button"
+            onPress={() => router.push('/gameplan/settings' as never)}
+            style={({ pressed }) => [
+              styles.row,
+              { backgroundColor: theme.backgroundElement, opacity: pressed ? 0.7 : 1 },
+            ]}>
+            <ThemedText type="smallBold">When your plan arrives</ThemedText>
+            <ThemedText type="small" themeColor="textSecondary">
+              Payday or a day you pick, and the time of day.
+            </ThemedText>
+          </Pressable>
+
           <ThemedView style={styles.spacer} />
 
           <Pressable
@@ -82,6 +96,11 @@ const styles = StyleSheet.create({
   },
   identityCopy: {
     flex: 1,
+    gap: Spacing.half,
+  },
+  row: {
+    borderRadius: Spacing.two,
+    padding: Spacing.three,
     gap: Spacing.half,
   },
   spacer: {

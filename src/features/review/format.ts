@@ -1,9 +1,8 @@
 /** Formatting helpers for the financial review UI. */
 
-export function formatMoney(value: number): string {
-  const rounded = Math.round(value);
-  return `$${Math.abs(rounded).toLocaleString('en-US')}${value < 0 ? ' CR' : ''}`;
-}
+import { formatMoney } from '@/utils/money';
+
+export { formatMoney };
 
 export function formatMoneyExact(value: number): string {
   return `$${value.toLocaleString('en-US', {

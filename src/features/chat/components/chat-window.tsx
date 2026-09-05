@@ -9,7 +9,12 @@ import { ChatMessageList } from '@/features/chat/components/chat-message-list';
 import { useChat } from '@/features/chat/hooks/use-chat';
 import { useTheme } from '@/hooks/use-theme';
 
-export function ChatWindow() {
+type ChatWindowProps = {
+  /** One line of context the route composes in — the current plan, when there is one. */
+  contextLine?: string | null;
+};
+
+export function ChatWindow({ contextLine }: ChatWindowProps) {
   const theme = useTheme();
   const { messages, draft, isReplying, setDraft, sendMessage } = useChat();
 
@@ -19,7 +24,7 @@ export function ChatWindow() {
         <ThemedView style={[styles.header, { borderBottomColor: theme.backgroundSelected }]}>
           <ThemedText type="smallBold">FinBot Chat</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Preview mode
+            {contextLine ?? 'Preview mode'}
           </ThemedText>
         </ThemedView>
 
