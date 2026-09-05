@@ -3,6 +3,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -15,7 +16,10 @@ import {
 } from 'react-hook-form';
 
 import { useAuth } from '@/features/auth/use-auth';
-import { submitOnboarding } from '@/features/onboarding/api/onboarding-api';
+import {
+  fetchSavedOnboarding,
+  submitOnboarding,
+} from '@/features/onboarding/api/onboarding-api';
 import {
   getOnboardingSteps,
   type OnboardingStepConfig,
@@ -28,6 +32,10 @@ import {
   type OnboardingFormValues,
 } from '@/features/onboarding/schemas/onboarding';
 import { createInitialAnswers } from '@/features/onboarding/utils/create-initial-answers';
+import {
+  fromManualPayload,
+  toManualPayload,
+} from '@/features/onboarding/utils/manual-payload';
 import { ApiError } from '@/lib/api-client';
 
 type OnboardingContextValue = {
@@ -68,6 +76,39 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     mode: 'onChange',
     reValidateMode: 'onChange',
   });
+
+  // Resume (APP-006): prefill previously saved answers so the wizard picks
+  // up where the user left off. The payload mapper owns the API → form
+  // shape (amounts back to text, goal detail flattened).
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void fetchSavedOnboarding()
+      .then((saved) => {
+        if (cancelled || !saved?.payload) {
+          return;
+        }
+
+        const next: OnboardingFormValues = {
+          ...createInitialAnswers(),
+          ...fromManualPayload(saved.payload),
+        };
+
+        form.reset(next);
+      })
+      .catch(() => {
+        // No saved answers (or a transient failure): start fresh.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   const currentStep = steps[stepIndex];
   const currentStepId = currentStep.id;
@@ -153,7 +194,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setAccountError(null);
 
     try {
-      await submitOnboarding(parsed.data);
+      await submitOnboarding(toManualPayload(parsed.data));
       setIsComplete(true);
       return true;
     } catch (err) {

@@ -1,37 +1,16 @@
-/** Mirrors the DTOs returned by the API's /plaid routes. */
+/**
+ * Contract types come from the generated client (APP-002); only UI-local
+ * state types are defined here. No handwritten DTO duplication.
+ */
 
-export type LinkTokenResult = {
-  linkToken: string;
-  expiration: string | null;
-  /** Plaid-hosted browser flow. Used by the web client. */
-  hostedLinkUrl: string | null;
-};
+export type {
+  HostedLinkCompletion,
+  LinkTokenResult,
+  PlaidConnection,
+} from '@/api/client';
 
-export type PlaidAccountSummary = {
-  accountId: string;
-  name: string;
-  officialName: string | null;
-  mask: string | null;
-  type: string;
-  subtype: string | null;
-  currentBalance: number | null;
-  availableBalance: number | null;
-  isoCurrencyCode: string | null;
-};
-
-export type PlaidConnection = {
-  id: string;
-  itemId: string;
-  institutionId: string | null;
-  institutionName: string | null;
-  status: string;
-  createdAt: string;
-  accounts: PlaidAccountSummary[];
-};
-
-export type HostedLinkCompletion =
-  | { status: 'pending' }
-  | { status: 'connected'; connection: PlaidConnection };
+export type PlaidAccountSummary =
+  import('@/api/client').PlaidConnection['accounts'][number];
 
 /**
  * `checking` covers the initial "have they already linked?" lookup, so the
@@ -46,7 +25,7 @@ export type ConnectBankStatus =
 
 export type UsePlaidLinkResult = {
   status: ConnectBankStatus;
-  connection: PlaidConnection | null;
+  connection: import('@/api/client').PlaidConnection | null;
   error: string | null;
   connect: () => void;
 };

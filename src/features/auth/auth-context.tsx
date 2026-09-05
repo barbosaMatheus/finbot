@@ -8,6 +8,9 @@ import {
   type ReactNode,
 } from 'react';
 
+import { setRefreshSessionHandler } from '@/lib/api-client';
+import { revokePushRegistration } from '@/features/push/push-registration';
+
 import {
   login as loginRequest,
   logout as logoutRequest,
@@ -64,6 +67,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Let the API client refresh-and-retry a request whose access token
+  // expired mid-session (APP-004).
+  useEffect(() => {
+    setRefreshSessionHandler(async () => {
+      try {
+        const result = await refreshSessionRequest();
+        setUser(result.user);
+        return true;
+      } catch {
+        setUser(null);
+        return false;
+      }
+    });
+
+    return () => {
+      setRefreshSessionHandler(null);
+    };
+  }, []);
+
   const login = useCallback(async (credentials: LoginCredentials) => {
     const result = await loginRequest(credentials);
     setUser(result.user);
@@ -76,6 +98,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
+      // Revoke this device's push token first, while the session that
+      // authorizes the revocation still exists (APP-009).
+      await revokePushRegistration();
       await logoutRequest();
     } finally {
       setUser(null);

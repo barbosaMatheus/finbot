@@ -1,95 +1,151 @@
-import { useRouter } from 'expo-router';
-import { SymbolView } from 'expo-symbols';
-import { ActivityIndicator, Pressable, StyleSheet } from 'react-native';
+/**
+ * The multi-institution linking hub (APP-005). Comes BEFORE the numeric
+ * finance questions: connect checking and every spending card so the
+ * analysis can derive what the wizard would otherwise have to ask.
+ */
 
+import { SymbolView } from 'expo-symbols';
+import { ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
+
+import { ActionButton } from '@/components/action-button';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
-import { useConnectBank } from '@/features/connect-bank/hooks/use-connect-bank';
+import { useLinkingHub } from '@/features/connect-bank/hooks/use-linking-hub';
+import { useOnboardingStatus } from '@/features/onboarding-status/onboarding-status-context';
 import { useTheme } from '@/hooks/use-theme';
+import type { PlaidConnection } from '@/api/client';
 
-const PRIMARY_BLUE = '#1877F2';
 const ERROR_RED = '#e5484d';
 
-const TRUST_POINTS = [
-  {
-    icon: { ios: 'lock.fill' as const, android: 'lock', web: 'lock' },
-    title: 'Bank-level security',
-    description: 'Your credentials are encrypted and never shared with FinBot.',
-  },
-  {
-    icon: { ios: 'eye.slash.fill' as const, android: 'visibility_off', web: 'visibility_off' },
-    title: 'Read-only access',
-    description: 'We can view balances and transactions, but never move money.',
-  },
-  {
-    icon: { ios: 'checkmark.shield.fill' as const, android: 'verified_user', web: 'verified_user' },
-    title: 'Powered by Plaid',
-    description: 'Connect through Plaid, the trusted standard used by leading finance apps.',
-  },
-] as const;
+function healthLabel(connection: PlaidConnection): {
+  label: string;
+  color: string;
+  needsAttention: boolean;
+} {
+  switch (connection.health?.syncStatus) {
+    case 'complete':
+      return { label: 'Ready', color: '#2f9e63', needsAttention: false };
+    case 'failed':
+      return { label: 'Needs attention', color: ERROR_RED, needsAttention: true };
+    case 'syncing':
+      return { label: 'Syncing…', color: '#b97a1e', needsAttention: false };
+    default:
+      return { label: 'Starting…', color: '#b97a1e', needsAttention: false };
+  }
+}
 
 export function ConnectBankScreen() {
   const theme = useTheme();
-  const router = useRouter();
-  const { status, connection, error, connect } = useConnectBank();
+  const { status } = useOnboardingStatus();
+  const {
+    connections,
+    isLoading,
+    busy,
+    error,
+    notice,
+    addInstitution,
+    updateConnection,
+    removeConnection,
+    declareDone,
+  } = useLinkingHub();
 
-  const isConnected = status === 'connected';
-  const isBusy = status === 'linking' || status === 'checking';
-  const institutionName = connection?.institutionName;
-
-  function handleContinue() {
-    if (!isConnected) {
-      return;
-    }
-
-    router.replace('/(app)');
-  }
+  const hasConnections = connections.length > 0;
+  const alreadyDeclared = status?.gates.linkingDeclaredComplete ?? false;
 
   return (
     <ThemedView style={styles.screen}>
-      <ThemedView style={styles.body}>
-        <ThemedView
-          style={[styles.heroIcon, { backgroundColor: theme.backgroundElement }]}>
-          <SymbolView
-            name={{
-              ios: 'building.columns.fill',
-              android: 'account_balance',
-              web: 'account_balance',
-            }}
-            size={40}
-            tintColor={PRIMARY_BLUE}
-          />
-        </ThemedView>
-
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
         <ThemedView style={styles.header}>
           <ThemedText type="subtitle" style={styles.title}>
-            {isConnected ? 'Bank connected' : 'Connect your bank'}
+            {hasConnections ? 'Your connected accounts' : 'Connect your accounts'}
           </ThemedText>
           <ThemedText themeColor="textSecondary" style={styles.subtitle}>
-            {isConnected
-              ? `${institutionName ?? 'Your account'} is linked. Continue to start using FinBot.`
-              : 'Link your account so FinBot can track spending, balances, and help you stay on budget.'}
+            Connect your checking account and every card you spend with. FinBot
+            reads up to two years of history to work out your income, bills, and
+            spending — so you won&apos;t have to guess at numbers later.
           </ThemedText>
         </ThemedView>
 
-        <ThemedView style={styles.trustList}>
-          {TRUST_POINTS.map((point) => (
-            <ThemedView key={point.title} style={styles.trustRow}>
-              <ThemedView
-                style={[styles.trustIcon, { backgroundColor: theme.backgroundElement }]}>
-                <SymbolView name={point.icon} size={18} tintColor={theme.text} />
-              </ThemedView>
-              <ThemedView style={styles.trustCopy}>
-                <ThemedText type="smallBold">{point.title}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {point.description}
-                </ThemedText>
-              </ThemedView>
-            </ThemedView>
-          ))}
-        </ThemedView>
-      </ThemedView>
+        {isLoading ? (
+          <ActivityIndicator color={theme.text} style={styles.loading} />
+        ) : (
+          <ThemedView style={styles.connectionList}>
+            {connections.map((connection) => {
+              const health = healthLabel(connection);
+              const isBusyHere =
+                (busy?.kind === 'update' || busy?.kind === 'disconnect') &&
+                busy.connectionId === connection.id;
+
+              return (
+                <ThemedView
+                  key={connection.id}
+                  accessibilityLabel={`Connection: ${connection.institutionName ?? 'institution'}, ${health.label}`}
+                  style={[styles.connectionCard, { backgroundColor: theme.backgroundElement }]}>
+                  <ThemedView style={styles.connectionHeader}>
+                    <ThemedText type="smallBold" style={styles.connectionName}>
+                      {connection.institutionName ?? 'Institution'}
+                    </ThemedText>
+                    <ThemedText type="small" style={{ color: health.color }}>
+                      {health.label}
+                    </ThemedText>
+                  </ThemedView>
+
+                  {connection.accounts.map((account) => (
+                    <ThemedText
+                      key={account.accountId}
+                      type="small"
+                      themeColor="textSecondary">
+                      {account.name}
+                      {account.mask ? ` ····${account.mask}` : ''}
+                    </ThemedText>
+                  ))}
+
+                  <ThemedView style={styles.connectionActions}>
+                    {health.needsAttention ? (
+                      <ActionButton
+                        label="Reconnect"
+                        variant="secondary"
+                        busy={isBusyHere && busy?.kind === 'update'}
+                        onPress={() => updateConnection(connection)}
+                      />
+                    ) : null}
+                    <ActionButton
+                      label="Disconnect"
+                      variant="danger"
+                      busy={isBusyHere && busy?.kind === 'disconnect'}
+                      onPress={() => removeConnection(connection)}
+                    />
+                  </ThemedView>
+                </ThemedView>
+              );
+            })}
+          </ThemedView>
+        )}
+
+        {notice ? (
+          <ThemedText type="small" themeColor="textSecondary" style={styles.notice}>
+            {notice}
+          </ThemedText>
+        ) : null}
+
+        {!hasConnections && !isLoading ? (
+          <ThemedView style={styles.trustRow}>
+            <SymbolView
+              name={{ ios: 'lock.fill', android: 'lock', web: 'lock' }}
+              size={16}
+              tintColor={theme.text}
+            />
+            <ThemedText type="small" themeColor="textSecondary" style={styles.trustText}>
+              Bank-level security via Plaid. Read-only — FinBot can never move
+              money. Disconnect anytime.
+            </ThemedText>
+          </ThemedView>
+        ) : null}
+      </ScrollView>
 
       <ThemedView style={styles.actions}>
         {error ? (
@@ -98,50 +154,25 @@ export function ConnectBankScreen() {
           </ThemedText>
         ) : null}
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Connect bank"
-          accessibilityState={{ busy: isBusy, disabled: isConnected || isBusy }}
-          disabled={isConnected || isBusy}
-          onPress={connect}
-          style={({ pressed }) => [
-            styles.primaryButton,
-            {
-              backgroundColor: isConnected ? theme.backgroundElement : PRIMARY_BLUE,
-              opacity: isBusy ? 0.7 : pressed && !isConnected ? 0.7 : 1,
-            },
-          ]}>
-          {status === 'linking' ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <ThemedText
-              type="smallBold"
-              style={{ color: isConnected ? theme.text : '#ffffff' }}>
-              {isConnected ? 'Connected' : status === 'error' ? 'Try again' : 'Connect bank'}
-            </ThemedText>
-          )}
-        </Pressable>
+        <ActionButton
+          label={hasConnections ? 'Add another institution' : 'Connect a bank'}
+          variant={hasConnections ? 'secondary' : 'primary'}
+          busy={busy?.kind === 'add'}
+          onPress={addInstitution}
+        />
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Continue"
-          accessibilityState={{ disabled: !isConnected }}
-          disabled={!isConnected}
-          onPress={handleContinue}
-          style={({ pressed }) => [
-            styles.secondaryButton,
-            {
-              borderColor: theme.backgroundSelected,
-              opacity: !isConnected ? 0.45 : pressed ? 0.7 : 1,
-            },
-          ]}>
-          <ThemedText type="smallBold" themeColor={!isConnected ? 'textSecondary' : 'text'}>
-            Continue
-          </ThemedText>
-        </Pressable>
+        {hasConnections ? (
+          <ActionButton
+            label={alreadyDeclared ? 'Done' : "I've added all my accounts"}
+            busy={busy?.kind === 'declare'}
+            onPress={declareDone}
+          />
+        ) : null}
 
         <ThemedText type="small" themeColor="textSecondary" style={styles.footnote}>
-          Secured by Plaid. You can disconnect anytime in settings.
+          {hasConnections
+            ? 'Cards you spend with matter most — an unconnected card means FinBot can’t see what you bought.'
+            : 'Secured by Plaid, the standard used by leading finance apps.'}
         </ThemedText>
       </ThemedView>
     </ThemedView>
@@ -151,78 +182,69 @@ export function ConnectBankScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    justifyContent: 'space-between',
-    gap: Spacing.five,
+    gap: Spacing.three,
   },
-  body: {
+  scroll: {
     flex: 1,
-    justifyContent: 'center',
-    gap: Spacing.four,
   },
-  heroIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
+  scrollContent: {
+    gap: Spacing.four,
+    paddingBottom: Spacing.four,
   },
   header: {
     gap: Spacing.two,
-    alignItems: 'center',
   },
   title: {
     fontSize: 28,
     lineHeight: 34,
-    textAlign: 'center',
   },
-  subtitle: {
-    textAlign: 'center',
+  subtitle: {},
+  loading: {
+    marginTop: Spacing.four,
   },
-  trustList: {
+  connectionList: {
     gap: Spacing.three,
+  },
+  connectionCard: {
+    borderRadius: Spacing.two,
+    padding: Spacing.three,
+    gap: Spacing.one,
+  },
+  connectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
+    backgroundColor: 'transparent',
+  },
+  connectionName: {
+    flex: 1,
+  },
+  connectionActions: {
+    flexDirection: 'row',
+    gap: Spacing.two,
     marginTop: Spacing.two,
+    backgroundColor: 'transparent',
   },
   trustRow: {
     flexDirection: 'row',
-    gap: Spacing.three,
     alignItems: 'flex-start',
+    gap: Spacing.two,
   },
-  trustIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  trustCopy: {
+  trustText: {
     flex: 1,
-    gap: Spacing.half,
+  },
+  notice: {
+    textAlign: 'center',
   },
   actions: {
     gap: Spacing.two,
   },
-  primaryButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: Spacing.two,
-    paddingVertical: Spacing.three,
-    minHeight: 48,
-  },
-  secondaryButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderRadius: Spacing.two,
-    paddingVertical: Spacing.three,
-    minHeight: 48,
-  },
-  footnote: {
-    textAlign: 'center',
-    marginTop: Spacing.one,
-  },
   error: {
     color: ERROR_RED,
+    textAlign: 'center',
+  },
+  footnote: {
     textAlign: 'center',
   },
 });
