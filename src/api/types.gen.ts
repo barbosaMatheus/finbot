@@ -413,6 +413,143 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/gameplan/anchor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The anchor in one read: period, plan with why lines, the last grade, settings */
+        get: operations["getAnchor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gameplan/anchor/got-it": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Acknowledge the anchor; opens the period */
+        post: operations["acknowledgeAnchor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gameplan/anchor/swap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exchange one plan target for one alternate; once per period */
+        post: operations["swapAnchorTarget"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gameplan/anchor/heads-up/parse": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Heads-up step one: the line becomes a proposal; says whether the amount box follows */
+        post: operations["parseHeadsUp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gameplan/anchor/heads-up": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Heads-up step two: apply the record with the confirmed amount; the reply explains the diff */
+        post: operations["applyHeadsUp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gameplan/anchor/reflection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** "What got in the way?" or "what has been hard?" — stored, embedded, attributed */
+        post: operations["addReflection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gameplan/anchor/awareness-done": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The awareness target is done */
+        post: operations["completeAwareness"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/gameplan/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Anchor settings: mode, day, time of day */
+        get: operations["getAnchorSettings"];
+        /** Update anchor settings; effective from the next period */
+        put: operations["updateAnchorSettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/query-vector-db": {
         parameters: {
             query?: never;
@@ -2113,6 +2250,2057 @@ export interface operations {
             };
             /** @description PUSH_TOKEN_NOT_FOUND */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    getAnchor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Anchor */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "no_period" | "building" | "ready";
+                        period: {
+                            id: string;
+                            start: string;
+                            end: string;
+                            /** @enum {string} */
+                            trigger: "payday" | "fixed_day" | "first";
+                            /** @enum {string} */
+                            anchorMode: "payday" | "fixed_day";
+                            /** @enum {string} */
+                            status: "planned" | "open" | "closed";
+                            firstPeriod: boolean;
+                            openingPaycheck: number | null;
+                            anchorReadyAt: string | null;
+                            anchorOpenedAt: string | null;
+                            swapUsed: boolean;
+                            awarenessCompletedAt: string | null;
+                        } | null;
+                        plan: {
+                            targets: {
+                                id: string;
+                                rank: number;
+                                /** @enum {string} */
+                                role: "plan" | "alternate";
+                                definition: {
+                                    /** @constant */
+                                    type: "spend_cap";
+                                    bucket: string;
+                                    cap: number;
+                                    periodAverage: number;
+                                    bucketAverage: number;
+                                    billShare: number;
+                                    excludedBillStreams: string[];
+                                    base: number;
+                                    reduction: number;
+                                    sharedAccounts: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "frequency_cap";
+                                    bucket: string;
+                                    maxCount: number;
+                                    periodCount: number;
+                                    averageTicket: number;
+                                } | {
+                                    /** @constant */
+                                    type: "bill_readiness";
+                                    amount: number;
+                                    byDate: string | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    type: "savings_transfer";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    goal: {
+                                        description: string;
+                                        targetAmount: number;
+                                        remaining: number;
+                                        periodsLeft: number;
+                                        perPeriodNeeded: number;
+                                    } | null;
+                                } | {
+                                    /** @constant */
+                                    type: "debt_payment";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    balance: number;
+                                } | {
+                                    /** @constant */
+                                    type: "awareness";
+                                    /** @enum {string} */
+                                    kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                    unknownAmount: number | null;
+                                    unknownShare: number | null;
+                                    count: number | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[] | null;
+                                };
+                                reasons: ({
+                                    code: string;
+                                } & {
+                                    [key: string]: unknown;
+                                })[];
+                                why: string | null;
+                                whySource: ("model" | "template") | null;
+                            }[];
+                            alternates: {
+                                id: string;
+                                rank: number;
+                                /** @enum {string} */
+                                role: "plan" | "alternate";
+                                definition: {
+                                    /** @constant */
+                                    type: "spend_cap";
+                                    bucket: string;
+                                    cap: number;
+                                    periodAverage: number;
+                                    bucketAverage: number;
+                                    billShare: number;
+                                    excludedBillStreams: string[];
+                                    base: number;
+                                    reduction: number;
+                                    sharedAccounts: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "frequency_cap";
+                                    bucket: string;
+                                    maxCount: number;
+                                    periodCount: number;
+                                    averageTicket: number;
+                                } | {
+                                    /** @constant */
+                                    type: "bill_readiness";
+                                    amount: number;
+                                    byDate: string | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    type: "savings_transfer";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    goal: {
+                                        description: string;
+                                        targetAmount: number;
+                                        remaining: number;
+                                        periodsLeft: number;
+                                        perPeriodNeeded: number;
+                                    } | null;
+                                } | {
+                                    /** @constant */
+                                    type: "debt_payment";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    balance: number;
+                                } | {
+                                    /** @constant */
+                                    type: "awareness";
+                                    /** @enum {string} */
+                                    kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                    unknownAmount: number | null;
+                                    unknownShare: number | null;
+                                    count: number | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[] | null;
+                                };
+                                reasons: ({
+                                    code: string;
+                                } & {
+                                    [key: string]: unknown;
+                                })[];
+                                why: string | null;
+                                whySource: ("model" | "template") | null;
+                            }[];
+                            freeCash: {
+                                incomeInPeriod: number;
+                                /** @enum {string} */
+                                incomeSource: "opening_paycheck" | "streams" | "estimate" | "none";
+                                shelf: number;
+                                essentialFloor: number;
+                                essentialBuckets: {
+                                    bucket: string;
+                                    periodAverage: number;
+                                }[];
+                                essentialStreams: {
+                                    streamKey: string;
+                                    displayName: string;
+                                    periodAverage: number;
+                                }[];
+                                oneTimeCosts: number;
+                                freeCash: number;
+                                availableBalance: number | null;
+                                cashCheck: number | null;
+                                tight: boolean;
+                                tightReason: ("cash_check" | "no_free_cash") | null;
+                            };
+                            live: {
+                                freeCash: number;
+                                cashCheck: number | null;
+                                postedBills: number;
+                                remainingShelf: number;
+                            } | null;
+                            shelf: {
+                                total: number;
+                                byDate: string | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[];
+                            };
+                            pace: {
+                                /** @enum {string} */
+                                chosen: "ease_in" | "balanced" | "push";
+                                /** @enum {string} */
+                                effective: "ease_in" | "balanced" | "push";
+                                capReduction: number;
+                                commitShare: number;
+                            };
+                            reasons: ({
+                                code: string;
+                            } & {
+                                [key: string]: unknown;
+                            })[];
+                            narration: {
+                                /** @enum {string} */
+                                source: "model" | "template";
+                                fallbackReason: string | null;
+                                model: string | null;
+                            } | null;
+                            swapUsed: boolean;
+                        } | null;
+                        previousGrade: {
+                            periodId: string;
+                            period: {
+                                start: string;
+                                end: string;
+                            };
+                            results: {
+                                target: {
+                                    /** @constant */
+                                    type: "spend_cap";
+                                    bucket: string;
+                                    cap: number;
+                                    periodAverage: number;
+                                    bucketAverage: number;
+                                    billShare: number;
+                                    excludedBillStreams: string[];
+                                    base: number;
+                                    reduction: number;
+                                    sharedAccounts: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "frequency_cap";
+                                    bucket: string;
+                                    maxCount: number;
+                                    periodCount: number;
+                                    averageTicket: number;
+                                } | {
+                                    /** @constant */
+                                    type: "bill_readiness";
+                                    amount: number;
+                                    byDate: string | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    type: "savings_transfer";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    goal: {
+                                        description: string;
+                                        targetAmount: number;
+                                        remaining: number;
+                                        periodsLeft: number;
+                                        perPeriodNeeded: number;
+                                    } | null;
+                                } | {
+                                    /** @constant */
+                                    type: "debt_payment";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    balance: number;
+                                } | {
+                                    /** @constant */
+                                    type: "awareness";
+                                    /** @enum {string} */
+                                    kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                    unknownAmount: number | null;
+                                    unknownShare: number | null;
+                                    count: number | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[] | null;
+                                };
+                                /** @enum {string} */
+                                outcome: "met" | "close" | "missed" | "unresolved";
+                                details: ({
+                                    code: string;
+                                } & {
+                                    [key: string]: unknown;
+                                })[];
+                            }[];
+                            lines: string[];
+                            improvements: string | null;
+                            moneyCommitOutcome: ("met" | "close" | "missed" | "unresolved") | null;
+                            billOverrunTotal: number;
+                            narration: {
+                                /** @enum {string} */
+                                source: "model" | "template";
+                                fallbackReason: string | null;
+                                model: string | null;
+                            } | null;
+                        } | null;
+                        reengage: boolean;
+                        settings: {
+                            /** @enum {string} */
+                            anchorMode: "auto" | "payday" | "fixed_day";
+                            anchorDay: number;
+                            /** @enum {string} */
+                            anchorTimeOfDay: "morning" | "midday" | "evening";
+                        };
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    acknowledgeAnchor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Opened */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        periodId: string;
+                        /** @enum {string} */
+                        status: "planned" | "open" | "closed";
+                        anchorOpenedAt: string | null;
+                    };
+                };
+            };
+            /** @description NO_LIVE_PERIOD */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    swapAnchorTarget: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    outId: string;
+                    inId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Swapped */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        plan: {
+                            targets: {
+                                id: string;
+                                rank: number;
+                                /** @enum {string} */
+                                role: "plan" | "alternate";
+                                definition: {
+                                    /** @constant */
+                                    type: "spend_cap";
+                                    bucket: string;
+                                    cap: number;
+                                    periodAverage: number;
+                                    bucketAverage: number;
+                                    billShare: number;
+                                    excludedBillStreams: string[];
+                                    base: number;
+                                    reduction: number;
+                                    sharedAccounts: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "frequency_cap";
+                                    bucket: string;
+                                    maxCount: number;
+                                    periodCount: number;
+                                    averageTicket: number;
+                                } | {
+                                    /** @constant */
+                                    type: "bill_readiness";
+                                    amount: number;
+                                    byDate: string | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    type: "savings_transfer";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    goal: {
+                                        description: string;
+                                        targetAmount: number;
+                                        remaining: number;
+                                        periodsLeft: number;
+                                        perPeriodNeeded: number;
+                                    } | null;
+                                } | {
+                                    /** @constant */
+                                    type: "debt_payment";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    balance: number;
+                                } | {
+                                    /** @constant */
+                                    type: "awareness";
+                                    /** @enum {string} */
+                                    kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                    unknownAmount: number | null;
+                                    unknownShare: number | null;
+                                    count: number | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[] | null;
+                                };
+                                reasons: ({
+                                    code: string;
+                                } & {
+                                    [key: string]: unknown;
+                                })[];
+                                why: string | null;
+                                whySource: ("model" | "template") | null;
+                            }[];
+                            alternates: {
+                                id: string;
+                                rank: number;
+                                /** @enum {string} */
+                                role: "plan" | "alternate";
+                                definition: {
+                                    /** @constant */
+                                    type: "spend_cap";
+                                    bucket: string;
+                                    cap: number;
+                                    periodAverage: number;
+                                    bucketAverage: number;
+                                    billShare: number;
+                                    excludedBillStreams: string[];
+                                    base: number;
+                                    reduction: number;
+                                    sharedAccounts: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "frequency_cap";
+                                    bucket: string;
+                                    maxCount: number;
+                                    periodCount: number;
+                                    averageTicket: number;
+                                } | {
+                                    /** @constant */
+                                    type: "bill_readiness";
+                                    amount: number;
+                                    byDate: string | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    type: "savings_transfer";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    goal: {
+                                        description: string;
+                                        targetAmount: number;
+                                        remaining: number;
+                                        periodsLeft: number;
+                                        perPeriodNeeded: number;
+                                    } | null;
+                                } | {
+                                    /** @constant */
+                                    type: "debt_payment";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    balance: number;
+                                } | {
+                                    /** @constant */
+                                    type: "awareness";
+                                    /** @enum {string} */
+                                    kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                    unknownAmount: number | null;
+                                    unknownShare: number | null;
+                                    count: number | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[] | null;
+                                };
+                                reasons: ({
+                                    code: string;
+                                } & {
+                                    [key: string]: unknown;
+                                })[];
+                                why: string | null;
+                                whySource: ("model" | "template") | null;
+                            }[];
+                            freeCash: {
+                                incomeInPeriod: number;
+                                /** @enum {string} */
+                                incomeSource: "opening_paycheck" | "streams" | "estimate" | "none";
+                                shelf: number;
+                                essentialFloor: number;
+                                essentialBuckets: {
+                                    bucket: string;
+                                    periodAverage: number;
+                                }[];
+                                essentialStreams: {
+                                    streamKey: string;
+                                    displayName: string;
+                                    periodAverage: number;
+                                }[];
+                                oneTimeCosts: number;
+                                freeCash: number;
+                                availableBalance: number | null;
+                                cashCheck: number | null;
+                                tight: boolean;
+                                tightReason: ("cash_check" | "no_free_cash") | null;
+                            };
+                            live: {
+                                freeCash: number;
+                                cashCheck: number | null;
+                                postedBills: number;
+                                remainingShelf: number;
+                            } | null;
+                            shelf: {
+                                total: number;
+                                byDate: string | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[];
+                            };
+                            pace: {
+                                /** @enum {string} */
+                                chosen: "ease_in" | "balanced" | "push";
+                                /** @enum {string} */
+                                effective: "ease_in" | "balanced" | "push";
+                                capReduction: number;
+                                commitShare: number;
+                            };
+                            reasons: ({
+                                code: string;
+                            } & {
+                                [key: string]: unknown;
+                            })[];
+                            narration: {
+                                /** @enum {string} */
+                                source: "model" | "template";
+                                fallbackReason: string | null;
+                                model: string | null;
+                            } | null;
+                            swapUsed: boolean;
+                        };
+                        diff: {
+                            /** @enum {string} */
+                            change: "unchanged" | "shrunk" | "moved_to_next_period" | "relaxed" | "resized" | "replaced" | "added" | "bills_infeasible";
+                            before: ({
+                                /** @constant */
+                                type: "spend_cap";
+                                bucket: string;
+                                cap: number;
+                                periodAverage: number;
+                                bucketAverage: number;
+                                billShare: number;
+                                excludedBillStreams: string[];
+                                base: number;
+                                reduction: number;
+                                sharedAccounts: boolean;
+                            } | {
+                                /** @constant */
+                                type: "frequency_cap";
+                                bucket: string;
+                                maxCount: number;
+                                periodCount: number;
+                                averageTicket: number;
+                            } | {
+                                /** @constant */
+                                type: "bill_readiness";
+                                amount: number;
+                                byDate: string | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[];
+                            } | {
+                                /** @constant */
+                                type: "savings_transfer";
+                                amount: number;
+                                share: number;
+                                freeCash: number;
+                                goal: {
+                                    description: string;
+                                    targetAmount: number;
+                                    remaining: number;
+                                    periodsLeft: number;
+                                    perPeriodNeeded: number;
+                                } | null;
+                            } | {
+                                /** @constant */
+                                type: "debt_payment";
+                                amount: number;
+                                share: number;
+                                freeCash: number;
+                                balance: number;
+                            } | {
+                                /** @constant */
+                                type: "awareness";
+                                /** @enum {string} */
+                                kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                unknownAmount: number | null;
+                                unknownShare: number | null;
+                                count: number | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[] | null;
+                            }) | null;
+                            after: ({
+                                /** @constant */
+                                type: "spend_cap";
+                                bucket: string;
+                                cap: number;
+                                periodAverage: number;
+                                bucketAverage: number;
+                                billShare: number;
+                                excludedBillStreams: string[];
+                                base: number;
+                                reduction: number;
+                                sharedAccounts: boolean;
+                            } | {
+                                /** @constant */
+                                type: "frequency_cap";
+                                bucket: string;
+                                maxCount: number;
+                                periodCount: number;
+                                averageTicket: number;
+                            } | {
+                                /** @constant */
+                                type: "bill_readiness";
+                                amount: number;
+                                byDate: string | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[];
+                            } | {
+                                /** @constant */
+                                type: "savings_transfer";
+                                amount: number;
+                                share: number;
+                                freeCash: number;
+                                goal: {
+                                    description: string;
+                                    targetAmount: number;
+                                    remaining: number;
+                                    periodsLeft: number;
+                                    perPeriodNeeded: number;
+                                } | null;
+                            } | {
+                                /** @constant */
+                                type: "debt_payment";
+                                amount: number;
+                                share: number;
+                                freeCash: number;
+                                balance: number;
+                            } | {
+                                /** @constant */
+                                type: "awareness";
+                                /** @enum {string} */
+                                kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                unknownAmount: number | null;
+                                unknownShare: number | null;
+                                count: number | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[] | null;
+                            }) | null;
+                        }[];
+                    };
+                };
+            };
+            /** @description NO_LIVE_PERIOD or PLAN_NOT_READY or SWAP_ALREADY_USED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description INVALID_SWAP */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    parseHeadsUp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    text: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Proposal */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        adjustment: {
+                            /** @enum {string} */
+                            kind: "cost" | "spend_event" | "income_change" | "bill_change" | "other";
+                            amount: number | null;
+                            affectedCategory: string | null;
+                            affectedStream: string | null;
+                            timing: {
+                                start: string;
+                                end: string;
+                            } | null;
+                            text: string;
+                        } | null;
+                        needsAmount: boolean;
+                        proposedAmount: number | null;
+                        amountDropped: boolean;
+                        problems: string[];
+                        /** @enum {string} */
+                        source: "model" | "none";
+                        fallbackReason: string | null;
+                    };
+                };
+            };
+            /** @description NO_LIVE_PERIOD or PLAN_NOT_READY */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    applyHeadsUp: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    text: string;
+                    adjustment: {
+                        /** @enum {string} */
+                        kind: "cost" | "spend_event" | "income_change" | "bill_change" | "other";
+                        affectedCategory: string | null;
+                        affectedStream: string | null;
+                        timing: {
+                            start: string;
+                            end: string;
+                        } | null;
+                    };
+                    amount: number | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Applied (or kept as context) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        outcome: "applied" | "context_only" | "no_amount" | "unknown_category" | "unknown_bill" | "no_cap_on_category";
+                        applied: boolean;
+                        reply: string;
+                        /** @enum {string} */
+                        replySource: "model" | "template";
+                        diff: {
+                            /** @enum {string} */
+                            change: "unchanged" | "shrunk" | "moved_to_next_period" | "relaxed" | "resized" | "replaced" | "added" | "bills_infeasible";
+                            before: ({
+                                /** @constant */
+                                type: "spend_cap";
+                                bucket: string;
+                                cap: number;
+                                periodAverage: number;
+                                bucketAverage: number;
+                                billShare: number;
+                                excludedBillStreams: string[];
+                                base: number;
+                                reduction: number;
+                                sharedAccounts: boolean;
+                            } | {
+                                /** @constant */
+                                type: "frequency_cap";
+                                bucket: string;
+                                maxCount: number;
+                                periodCount: number;
+                                averageTicket: number;
+                            } | {
+                                /** @constant */
+                                type: "bill_readiness";
+                                amount: number;
+                                byDate: string | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[];
+                            } | {
+                                /** @constant */
+                                type: "savings_transfer";
+                                amount: number;
+                                share: number;
+                                freeCash: number;
+                                goal: {
+                                    description: string;
+                                    targetAmount: number;
+                                    remaining: number;
+                                    periodsLeft: number;
+                                    perPeriodNeeded: number;
+                                } | null;
+                            } | {
+                                /** @constant */
+                                type: "debt_payment";
+                                amount: number;
+                                share: number;
+                                freeCash: number;
+                                balance: number;
+                            } | {
+                                /** @constant */
+                                type: "awareness";
+                                /** @enum {string} */
+                                kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                unknownAmount: number | null;
+                                unknownShare: number | null;
+                                count: number | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[] | null;
+                            }) | null;
+                            after: ({
+                                /** @constant */
+                                type: "spend_cap";
+                                bucket: string;
+                                cap: number;
+                                periodAverage: number;
+                                bucketAverage: number;
+                                billShare: number;
+                                excludedBillStreams: string[];
+                                base: number;
+                                reduction: number;
+                                sharedAccounts: boolean;
+                            } | {
+                                /** @constant */
+                                type: "frequency_cap";
+                                bucket: string;
+                                maxCount: number;
+                                periodCount: number;
+                                averageTicket: number;
+                            } | {
+                                /** @constant */
+                                type: "bill_readiness";
+                                amount: number;
+                                byDate: string | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[];
+                            } | {
+                                /** @constant */
+                                type: "savings_transfer";
+                                amount: number;
+                                share: number;
+                                freeCash: number;
+                                goal: {
+                                    description: string;
+                                    targetAmount: number;
+                                    remaining: number;
+                                    periodsLeft: number;
+                                    perPeriodNeeded: number;
+                                } | null;
+                            } | {
+                                /** @constant */
+                                type: "debt_payment";
+                                amount: number;
+                                share: number;
+                                freeCash: number;
+                                balance: number;
+                            } | {
+                                /** @constant */
+                                type: "awareness";
+                                /** @enum {string} */
+                                kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                unknownAmount: number | null;
+                                unknownShare: number | null;
+                                count: number | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[] | null;
+                            }) | null;
+                        }[];
+                        plan: {
+                            targets: {
+                                id: string;
+                                rank: number;
+                                /** @enum {string} */
+                                role: "plan" | "alternate";
+                                definition: {
+                                    /** @constant */
+                                    type: "spend_cap";
+                                    bucket: string;
+                                    cap: number;
+                                    periodAverage: number;
+                                    bucketAverage: number;
+                                    billShare: number;
+                                    excludedBillStreams: string[];
+                                    base: number;
+                                    reduction: number;
+                                    sharedAccounts: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "frequency_cap";
+                                    bucket: string;
+                                    maxCount: number;
+                                    periodCount: number;
+                                    averageTicket: number;
+                                } | {
+                                    /** @constant */
+                                    type: "bill_readiness";
+                                    amount: number;
+                                    byDate: string | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    type: "savings_transfer";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    goal: {
+                                        description: string;
+                                        targetAmount: number;
+                                        remaining: number;
+                                        periodsLeft: number;
+                                        perPeriodNeeded: number;
+                                    } | null;
+                                } | {
+                                    /** @constant */
+                                    type: "debt_payment";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    balance: number;
+                                } | {
+                                    /** @constant */
+                                    type: "awareness";
+                                    /** @enum {string} */
+                                    kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                    unknownAmount: number | null;
+                                    unknownShare: number | null;
+                                    count: number | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[] | null;
+                                };
+                                reasons: ({
+                                    code: string;
+                                } & {
+                                    [key: string]: unknown;
+                                })[];
+                                why: string | null;
+                                whySource: ("model" | "template") | null;
+                            }[];
+                            alternates: {
+                                id: string;
+                                rank: number;
+                                /** @enum {string} */
+                                role: "plan" | "alternate";
+                                definition: {
+                                    /** @constant */
+                                    type: "spend_cap";
+                                    bucket: string;
+                                    cap: number;
+                                    periodAverage: number;
+                                    bucketAverage: number;
+                                    billShare: number;
+                                    excludedBillStreams: string[];
+                                    base: number;
+                                    reduction: number;
+                                    sharedAccounts: boolean;
+                                } | {
+                                    /** @constant */
+                                    type: "frequency_cap";
+                                    bucket: string;
+                                    maxCount: number;
+                                    periodCount: number;
+                                    averageTicket: number;
+                                } | {
+                                    /** @constant */
+                                    type: "bill_readiness";
+                                    amount: number;
+                                    byDate: string | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[];
+                                } | {
+                                    /** @constant */
+                                    type: "savings_transfer";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    goal: {
+                                        description: string;
+                                        targetAmount: number;
+                                        remaining: number;
+                                        periodsLeft: number;
+                                        perPeriodNeeded: number;
+                                    } | null;
+                                } | {
+                                    /** @constant */
+                                    type: "debt_payment";
+                                    amount: number;
+                                    share: number;
+                                    freeCash: number;
+                                    balance: number;
+                                } | {
+                                    /** @constant */
+                                    type: "awareness";
+                                    /** @enum {string} */
+                                    kind: "tag_unknowns" | "biggest_purchases" | "which_can_move";
+                                    unknownAmount: number | null;
+                                    unknownShare: number | null;
+                                    count: number | null;
+                                    bills: {
+                                        key: string;
+                                        displayName: string;
+                                        /** @enum {string} */
+                                        source: "stream" | "declared";
+                                        /** @enum {string} */
+                                        status: "expected" | "carry_over" | "accruing";
+                                        /** @enum {string} */
+                                        basis: "confirmed" | "high_confidence" | "declared";
+                                        cadence: string;
+                                        amountClass: ("fixed" | "variable" | "erratic") | null;
+                                        shelfAmount: number;
+                                        planningAmount: number;
+                                        amountRange: {
+                                            low: number;
+                                            high: number;
+                                        } | null;
+                                        expectedDate: string | null;
+                                        windowStart: string | null;
+                                        windowEnd: string | null;
+                                        accrual: {
+                                            totalAmount: number;
+                                            share: number;
+                                            accruedBefore: number;
+                                            accruedAfter: number;
+                                            periodsUntilExpected: number;
+                                        } | null;
+                                    }[] | null;
+                                };
+                                reasons: ({
+                                    code: string;
+                                } & {
+                                    [key: string]: unknown;
+                                })[];
+                                why: string | null;
+                                whySource: ("model" | "template") | null;
+                            }[];
+                            freeCash: {
+                                incomeInPeriod: number;
+                                /** @enum {string} */
+                                incomeSource: "opening_paycheck" | "streams" | "estimate" | "none";
+                                shelf: number;
+                                essentialFloor: number;
+                                essentialBuckets: {
+                                    bucket: string;
+                                    periodAverage: number;
+                                }[];
+                                essentialStreams: {
+                                    streamKey: string;
+                                    displayName: string;
+                                    periodAverage: number;
+                                }[];
+                                oneTimeCosts: number;
+                                freeCash: number;
+                                availableBalance: number | null;
+                                cashCheck: number | null;
+                                tight: boolean;
+                                tightReason: ("cash_check" | "no_free_cash") | null;
+                            };
+                            live: {
+                                freeCash: number;
+                                cashCheck: number | null;
+                                postedBills: number;
+                                remainingShelf: number;
+                            } | null;
+                            shelf: {
+                                total: number;
+                                byDate: string | null;
+                                bills: {
+                                    key: string;
+                                    displayName: string;
+                                    /** @enum {string} */
+                                    source: "stream" | "declared";
+                                    /** @enum {string} */
+                                    status: "expected" | "carry_over" | "accruing";
+                                    /** @enum {string} */
+                                    basis: "confirmed" | "high_confidence" | "declared";
+                                    cadence: string;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    shelfAmount: number;
+                                    planningAmount: number;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    expectedDate: string | null;
+                                    windowStart: string | null;
+                                    windowEnd: string | null;
+                                    accrual: {
+                                        totalAmount: number;
+                                        share: number;
+                                        accruedBefore: number;
+                                        accruedAfter: number;
+                                        periodsUntilExpected: number;
+                                    } | null;
+                                }[];
+                            };
+                            pace: {
+                                /** @enum {string} */
+                                chosen: "ease_in" | "balanced" | "push";
+                                /** @enum {string} */
+                                effective: "ease_in" | "balanced" | "push";
+                                capReduction: number;
+                                commitShare: number;
+                            };
+                            reasons: ({
+                                code: string;
+                            } & {
+                                [key: string]: unknown;
+                            })[];
+                            narration: {
+                                /** @enum {string} */
+                                source: "model" | "template";
+                                fallbackReason: string | null;
+                                model: string | null;
+                            } | null;
+                            swapUsed: boolean;
+                        };
+                    };
+                };
+            };
+            /** @description NO_LIVE_PERIOD or PLAN_NOT_READY */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description INVALID_ADJUSTMENT */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    addReflection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    kind: "got_in_the_way" | "whats_been_hard";
+                    text: string;
+                    category?: string | null;
+                    start?: string | null;
+                    end?: string | null;
+                    structural?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Stored */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: string;
+                        periodId: string | null;
+                        /** @enum {string} */
+                        kind: "got_in_the_way" | "whats_been_hard";
+                        attribution: ("one_off" | "structural") | null;
+                        attributed: {
+                            category: string;
+                            start: string;
+                            end: string;
+                            amount: number;
+                            periodAmount: number;
+                        } | null;
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    completeAwareness: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        periodId: string;
+                        awarenessCompletedAt: string | null;
+                    };
+                };
+            };
+            /** @description NO_LIVE_PERIOD */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    getAnchorSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Settings */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        settings: {
+                            /** @enum {string} */
+                            anchorMode: "auto" | "payday" | "fixed_day";
+                            anchorDay: number;
+                            /** @enum {string} */
+                            anchorTimeOfDay: "morning" | "midday" | "evening";
+                        };
+                        /** @constant */
+                        effectiveFrom: "next_period";
+                    };
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+        };
+    };
+    updateAnchorSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @enum {string} */
+                    anchorMode?: "auto" | "payday" | "fixed_day";
+                    anchorDay?: number;
+                    /** @enum {string} */
+                    anchorTimeOfDay?: "morning" | "midday" | "evening";
+                };
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        settings: {
+                            /** @enum {string} */
+                            anchorMode: "auto" | "payday" | "fixed_day";
+                            anchorDay: number;
+                            /** @enum {string} */
+                            anchorTimeOfDay: "morning" | "midday" | "evening";
+                        };
+                        /** @constant */
+                        effectiveFrom: "next_period";
+                    };
+                };
+            };
+            /** @description Validation failed */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
