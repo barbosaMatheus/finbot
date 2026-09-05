@@ -26,7 +26,7 @@ import { useOnboardingStatus } from '@/features/onboarding-status/onboarding-sta
 import { isApiErrorCode, ApiError } from '@/lib/api-client';
 import { useTheme } from '@/hooks/use-theme';
 
-import { formatCadence, formatMoney } from '../format';
+import { formatCadence, formatLandingDay, formatMoney, formatPlanningLine } from '../format';
 import { ReviewItemCard } from './review-item-card';
 
 const BAND_COLORS: Record<string, string> = {
@@ -262,18 +262,31 @@ export function ReviewScreen() {
       {review.recurringStreams.length > 0 ? (
         <ThemedView style={styles.section}>
           <ThemedText type="smallBold">Recurring bills & subscriptions</ThemedText>
-          {review.recurringStreams.map((stream) => (
-            <ThemedView key={stream.streamKey} style={styles.listRow}>
-              <ThemedView style={styles.listRowText}>
-                <ThemedText type="small">{stream.displayName}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">
-                  {formatCadence(stream.cadence)}
-                  {stream.confidence !== 'high' ? ' · unconfirmed' : ''}
-                </ThemedText>
+          {review.recurringStreams.map((stream) => {
+            // What the plan will expect and reserve — shown here so what the
+            // user confirms is what the plan sets aside.
+            const landing = formatLandingDay(stream.anchorDayOfMonth);
+            const planning = formatPlanningLine(stream);
+
+            return (
+              <ThemedView key={stream.streamKey} style={styles.listRow}>
+                <ThemedView style={styles.listRowText}>
+                  <ThemedText type="small">{stream.displayName}</ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">
+                    {formatCadence(stream.cadence)}
+                    {landing ? ` · ${landing}` : ''}
+                    {stream.confidence !== 'high' ? ' · unconfirmed' : ''}
+                  </ThemedText>
+                  {planning ? (
+                    <ThemedText type="small" themeColor="textSecondary">
+                      {planning}
+                    </ThemedText>
+                  ) : null}
+                </ThemedView>
+                <ThemedText type="smallBold">{formatMoney(stream.monthlyAmount)}/mo</ThemedText>
               </ThemedView>
-              <ThemedText type="smallBold">{formatMoney(stream.monthlyAmount)}/mo</ThemedText>
-            </ThemedView>
-          ))}
+            );
+          })}
         </ThemedView>
       ) : null}
 

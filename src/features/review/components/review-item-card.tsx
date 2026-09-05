@@ -13,7 +13,16 @@ import { Spacing } from '@/constants/theme';
 import type { CorrectionAction, ReviewItem } from '@/api/client';
 import { useTheme } from '@/hooks/use-theme';
 
-import { asNumber, asString, evidenceOf, formatMoney } from '../format';
+import {
+  asAmountClass,
+  asAmountRange,
+  asNumber,
+  asString,
+  evidenceOf,
+  formatConfirmConsequence,
+  formatLandingDay,
+  formatMoney,
+} from '../format';
 
 type ReviewItemCardProps = {
   item: ReviewItem;
@@ -112,12 +121,20 @@ function describe(item: ReviewItem): { title: string; body: string; actions: Act
     case 'unconfirmed_recurring_stream': {
       const name = asString(evidence.displayName);
       const monthly = asNumber(evidence.monthlyAmount);
+      const landing = formatLandingDay(asNumber(evidence.anchorDayOfMonth));
+      // What confirming commits the plan to, from the same numbers the
+      // engine will reserve — never a figure the card made up.
+      const consequence = formatConfirmConsequence({
+        amountClass: asAmountClass(evidence.amountClass),
+        planningAmount: asNumber(evidence.planningAmount),
+        amountRange: asAmountRange(evidence.amountRange),
+      });
 
       return {
         title: `Is ${name ?? 'this charge'} a recurring bill?`,
         body: `It looks like it might repeat${
-          monthly ? ` (about ${formatMoney(monthly)}/month)` : ''
-        }, but the pattern isn’t clear enough to be sure.`,
+          monthly ? ` (about ${formatMoney(monthly)}/month${landing ? `, ${landing}` : ''})` : ''
+        }, but the pattern isn’t clear enough to be sure.${consequence ? ` ${consequence}` : ''}`,
         actions: [
           { label: 'Yes, it recurs', action: 'confirm_stream', variant: 'secondary' },
           { label: 'No, it doesn’t', action: 'dismiss_stream', variant: 'secondary' },

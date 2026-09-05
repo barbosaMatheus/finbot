@@ -1518,7 +1518,7 @@ export interface operations {
                      *         "availableToSpend": 7400
                      *       },
                      *       "fullFacts": {
-                     *         "ruleVersion": "facts-v3",
+                     *         "ruleVersion": "facts-v4",
                      *         "period": {
                      *           "oldestObservedDate": "2026-03-04",
                      *           "throughDate": "2026-08-24",
@@ -1566,7 +1566,28 @@ export interface operations {
                      *           "accountCount": 4
                      *         },
                      *         "recurring": {
-                     *           "outflows": []
+                     *           "outflows": [
+                     *             {
+                     *               "streamKey": "outflow:city power",
+                     *               "displayName": "City Power",
+                     *               "cadence": "monthly",
+                     *               "cadenceDays": 30.4,
+                     *               "averageAmount": 118,
+                     *               "lastAmount": 132,
+                     *               "monthlyAmount": 118.16,
+                     *               "amountVariance": 0.21,
+                     *               "amountClass": "variable",
+                     *               "planningAmount": 140,
+                     *               "amountRange": {
+                     *                 "low": 90,
+                     *                 "high": 140
+                     *               },
+                     *               "anchorDayOfMonth": 12,
+                     *               "dateJitterDays": 3,
+                     *               "confidence": "high",
+                     *               "lastDate": "2026-08-12"
+                     *             }
+                     *           ]
                      *         },
                      *         "movement": {
                      *           "internalTransferTotal": 2500,
@@ -1580,7 +1601,28 @@ export interface operations {
                      *           "unknownShareOfOutflow": 0.02
                      *         }
                      *       },
-                     *       "recurringStreams": [],
+                     *       "recurringStreams": [
+                     *         {
+                     *           "streamKey": "outflow:city power",
+                     *           "displayName": "City Power",
+                     *           "cadence": "monthly",
+                     *           "cadenceDays": 30.4,
+                     *           "averageAmount": 118,
+                     *           "lastAmount": 132,
+                     *           "monthlyAmount": 118.16,
+                     *           "amountVariance": 0.21,
+                     *           "amountClass": "variable",
+                     *           "planningAmount": 140,
+                     *           "amountRange": {
+                     *             "low": 90,
+                     *             "high": 140
+                     *           },
+                     *           "anchorDayOfMonth": 12,
+                     *           "dateJitterDays": 3,
+                     *           "confidence": "high",
+                     *           "lastDate": "2026-08-12"
+                     *         }
+                     *       ],
                      *       "incomeStreams": [],
                      *       "categoryTotals": [],
                      *       "reviewItems": [
@@ -1700,9 +1742,19 @@ export interface operations {
                                     streamKey: string;
                                     displayName: string;
                                     cadence: string;
+                                    cadenceDays: number;
                                     averageAmount: number;
+                                    lastAmount: number;
                                     monthlyAmount: number;
                                     amountVariance: number;
+                                    amountClass: ("fixed" | "variable" | "erratic") | null;
+                                    planningAmount: number | null;
+                                    amountRange: {
+                                        low: number;
+                                        high: number;
+                                    } | null;
+                                    anchorDayOfMonth: number | null;
+                                    dateJitterDays: number | null;
                                     /** @enum {string} */
                                     confidence: "high" | "medium" | "low";
                                     lastDate: string;
@@ -1724,9 +1776,19 @@ export interface operations {
                             streamKey: string;
                             displayName: string;
                             cadence: string;
+                            cadenceDays: number;
                             averageAmount: number;
+                            lastAmount: number;
                             monthlyAmount: number;
                             amountVariance: number;
+                            amountClass: ("fixed" | "variable" | "erratic") | null;
+                            planningAmount: number | null;
+                            amountRange: {
+                                low: number;
+                                high: number;
+                            } | null;
+                            anchorDayOfMonth: number | null;
+                            dateJitterDays: number | null;
                             /** @enum {string} */
                             confidence: "high" | "medium" | "low";
                             lastDate: string;
