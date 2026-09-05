@@ -181,6 +181,9 @@ export function ReviewScreen() {
     { label: 'Income / month', value: review.facts.monthlyIncomeEstimate },
     { label: 'Spending / month', value: review.facts.averageMonthlyEconomicSpend },
     { label: 'Cash obligations / month', value: review.facts.averageMonthlyCashObligations },
+    ...(review.facts.declaredObligationsMonthly > 0
+      ? [{ label: 'Includes bills you told us about', value: review.facts.declaredObligationsMonthly }]
+      : []),
     { label: 'Available to spend', value: review.facts.availableToSpend },
   ];
 
