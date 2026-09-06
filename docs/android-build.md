@@ -111,11 +111,11 @@ Ten to twenty minutes on the free tier. The build page ends with an APK
 link and a QR code; open it on the phone, allow installs from that source
 when Android asks, install. A phone with no SIM on Wi-Fi is enough.
 
-Rebuild only when native configuration changes (a plugin, a dependency
-with native code, `app.json`); JavaScript-only changes need a rebuild too
-for this profile, since there is no dev server in a preview build. For a
-tighter loop, the `development` profile produces a dev client that loads
-JavaScript from Metro on the laptop.
+A preview build carries its JavaScript inside the APK, so any change —
+native or JavaScript — means another build. For a tighter loop the
+`development` profile produces a dev client that loads JavaScript from
+Metro on the laptop and only needs rebuilding when native configuration
+changes (a plugin, a dependency with native code, `app.json`).
 
 ## The walk
 
