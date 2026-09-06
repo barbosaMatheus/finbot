@@ -44,3 +44,8 @@ example
 
 # env files
 *.env
+
+# Firebase (Android push). Per-app config from the Firebase console and the
+# service-account key that EAS holds for sending — see docs/android-build.md
+google-services.json
+*firebase-adminsdk*.json

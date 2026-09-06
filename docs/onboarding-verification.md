@@ -19,7 +19,9 @@ Verified against `finbot-api` handoff freeze `674392d` (branch
 ## Requires a device / real Sandbox session (not runnable in this pass)
 
 These need `docker compose up` with real Plaid Sandbox credentials plus a
-development build (`npx expo run:ios` / `run:android`) or the web browser:
+development build (`npx expo run:ios` / `run:android`) or the web browser.
+For Android, `docs/android-build.md` is the build-and-walk procedure; results
+of that walk go in the "On a device" section at the end of this file.
 
 1. **Web Hosted Link:** connect Sandbox institution via the hosted tab, add a
    second institution, declare done.

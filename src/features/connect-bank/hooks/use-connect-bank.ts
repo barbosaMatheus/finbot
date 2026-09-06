@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { launchPlaidLink } from '@/features/connect-bank/api/launch-plaid-link';
+import { linkPlatform } from '@/features/connect-bank/api/link-platform';
 import {
   createLinkToken,
   fetchConnections,
@@ -64,7 +65,7 @@ export function useConnectBank(): UsePlaidLinkResult {
 
     void (async () => {
       try {
-        const linkTokenResult = await createLinkToken();
+        const linkTokenResult = await createLinkToken({ platform: linkPlatform() });
         const result = await launchPlaidLink(linkTokenResult);
 
         if (!isMounted.current) {

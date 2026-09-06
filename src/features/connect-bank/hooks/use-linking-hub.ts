@@ -23,6 +23,7 @@ import {
   launchPlaidLink,
   launchPlaidLinkSession,
 } from '@/features/connect-bank/api/launch-plaid-link';
+import { linkPlatform } from '@/features/connect-bank/api/link-platform';
 import { useOnboardingStatus } from '@/features/onboarding-status/onboarding-status-context';
 import { routeForPhase } from '@/features/onboarding-status/routing';
 
@@ -133,7 +134,7 @@ export function useLinkingHub(): UseLinkingHubResult {
 
     void (async () => {
       try {
-        const token = await createLinkToken({});
+        const token = await createLinkToken({ platform: linkPlatform() });
         const connection = await launchPlaidLink(token);
 
         if (!isMounted.current) {
@@ -169,7 +170,11 @@ export function useLinkingHub(): UseLinkingHubResult {
 
       void (async () => {
         try {
-          const token = await createLinkToken({ mode: 'update', itemId: connection.id });
+          const token = await createLinkToken({
+            mode: 'update',
+            itemId: connection.id,
+            platform: linkPlatform(),
+          });
           const outcome = await launchPlaidLinkSession(token);
 
           if (outcome === 'completed') {
