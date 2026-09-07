@@ -169,8 +169,16 @@ and fix anything that breaks in the repository that owns it.
   (`eas env:list --environment preview`). ngrok's free tier shows a warning
   page only to browsers; the app's requests pass.
 - **Plain-HTTP address unavoidable** (a LAN IP with no tunnel): add
-  `expo-build-properties` with `android.usesCleartextTraffic: true` to the
-  plugins and rebuild. Prefer the tunnel.
+  `android.usesCleartextTraffic: true` to the `expo-build-properties`
+  entry in `app.json` and rebuild. Prefer the tunnel.
+- **Manifest merger: minSdkVersion … cannot be smaller than …** on a fresh
+  branch: a native dependency raised its floor. Raise
+  `android.minSdkVersion` in the `expo-build-properties` entry (Plaid's SDK
+  6.1 needs 26, which is why the entry exists).
+- **`expo start` in the web container fails to resolve a plugin** after
+  pulling a branch that added one: `docker compose exec web npm install`.
+  The container's `node_modules` is a named volume and does not follow
+  `package.json` on its own.
 
 ## Out of scope here
 
