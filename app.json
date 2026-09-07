@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.finbotpbd.finbot"
+      "bundleIdentifier": "com.finbot.finbot"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.finbotpbd.finbot"
+      "package": "com.finbot.finbot"
     },
     "web": {
       "output": "static",

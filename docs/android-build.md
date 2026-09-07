@@ -27,7 +27,7 @@ project id, so do this before the first build, not after.
 
 1. [Firebase console](https://console.firebase.google.com) → Add project
    (Analytics off is fine).
-2. Add an **Android** app with package name `com.finbotpbd.finbot`. Download
+2. Add an **Android** app with package name `com.finbot.finbot`. Download
    `google-services.json` into `finbot/`. It is git-ignored; `app.config.js`
    picks it up from there for local builds.
 3. Project settings → Service accounts → **Generate new private key**. Save
@@ -69,7 +69,7 @@ and falls back to the local file.
 
 <https://dashboard.plaid.com/developers/api> (left nav: Developers → API) →
 **Allowed Android package names** → Configure → Add New Android Package
-Name → `com.finbotpbd.finbot`. This is a team-wide setting, available on a
+Name → `com.finbot.finbot`. This is a team-wide setting, available on a
 Sandbox-only account. Plaid requires the package name on every Android
 Link token and rejects names it has not seen. The API sends it when the
 client says `platform: "android"` and `PLAID_ANDROID_PACKAGE_NAME` is set
@@ -96,7 +96,7 @@ In `finbot-app/.env`:
 
 ```
 PLAID_WEBHOOK_URL=https://<your-tunnel-host>/plaid/webhook
-PLAID_ANDROID_PACKAGE_NAME=com.finbotpbd.finbot
+PLAID_ANDROID_PACKAGE_NAME=com.finbot.finbot
 ```
 
 Then `docker compose up -d` (add `--profile llm` if a model host is in use).
