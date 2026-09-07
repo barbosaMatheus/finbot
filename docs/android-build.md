@@ -113,6 +113,13 @@ Ten to twenty minutes on the free tier. The build page ends with an APK
 link and a QR code; open it on the phone, allow installs from that source
 when Android asks, install. A phone with no SIM on Wi-Fi is enough.
 
+No phone? The Android Studio emulator does the whole walk, push included,
+as long as the virtual device uses a **Google Play** system image (the one
+with the Play Store icon in the device manager — "Google APIs" and plain
+images have no Firebase messaging). Download the APK on the laptop and drag
+it onto the emulator window, or `adb install finbot.apk`. The power button
+in the emulator toolbar locks the screen for the lock-screen check.
+
 A preview build carries its JavaScript inside the APK, so any change —
 native or JavaScript — means another build. For a tighter loop the
 `development` profile produces a dev client that loads JavaScript from
