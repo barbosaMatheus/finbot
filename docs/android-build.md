@@ -67,8 +67,10 @@ and falls back to the local file.
 
 ### 4. Plaid dashboard
 
-Team Settings → API → **Allowed Android package names** → add
-`com.finbotpbd.finbot`. Plaid requires the package name on every Android
+<https://dashboard.plaid.com/developers/api> (left nav: Developers → API) →
+**Allowed Android package names** → Configure → Add New Android Package
+Name → `com.finbotpbd.finbot`. This is a team-wide setting, available on a
+Sandbox-only account. Plaid requires the package name on every Android
 Link token and rejects names it has not seen. The API sends it when the
 client says `platform: "android"` and `PLAID_ANDROID_PACKAGE_NAME` is set
 (see below); web and iOS tokens never carry it.
