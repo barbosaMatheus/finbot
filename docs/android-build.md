@@ -44,6 +44,14 @@ project id, so do this before the first build, not after.
    # → Upload a new service account key → path to the JSON from step 3
    ```
 
+   The key is attached to the **application identifier** (the Android
+   package name) that `app.json` carried at upload time. Rename the package
+   afterwards and the new identifier starts with no key: Expo's push API
+   then answers every send with `InvalidCredentials` ("Unable to retrieve
+   the FCM server key for the recipient's app"). Run `eas credentials`
+   again under the new package and pick the existing key rather than
+   uploading it twice.
+
 ### 3. EAS environment variables
 
 EAS builds from an upload that honours `.gitignore`, so the git-ignored
@@ -120,6 +128,23 @@ images have no Firebase messaging). Download the APK on the laptop and drag
 it onto the emulator window, or `adb install finbot.apk`. The power button
 in the emulator toolbar locks the screen for the lock-screen check.
 
+Emulator notes from the first walk (2026-09-07, Android 16 Play image):
+
+- If Android Studio's first-run wizard never ran there is no SDK; the
+  command-line tools install one headlessly (`platform-tools`, `emulator`,
+  `platforms;android-36`, `system-images;android-36;google_apis_playstore;x86_64`).
+  Call the tools' Java classes directly when the user or Java path has a
+  space — the `.bat` wrappers break on it.
+- Keep the screen awake while driving it (`adb shell svc power stayon true`);
+  taps on a sleeping display look like a dead app.
+- A force-stopped app (`am force-stop`, or Settings → Force stop) receives
+  no FCM at all until it is launched again — that is Android, not FinBot.
+  Kill it from Recents or with `am kill` for the cold-start check.
+- With the emulator's hardware keyboard on, Gboard appends a character to a
+  **password** field when a button blurs it (a trailing space in Link's
+  form, a duplicate in ours). Tap another text field before the button, or
+  type passwords on the on-screen keyboard.
+
 A preview build carries its JavaScript inside the APK, so any change —
 native or JavaScript — means another build. For a tighter loop the
 `development` profile produces a dev client that loads JavaScript from
@@ -135,12 +160,19 @@ In order. Each line is one thing to see.
    browser tab) → First Platypus Bank → `user_good` / `pass_good` → back in
    the app with the institution listed.
 3. Allow notifications when asked (Android 13+ shows the system prompt).
+   The offer lives on the waiting screen, which only shows while the first
+   analysis is still running after the profile questions — on Sandbox that
+   analysis takes seconds, so most walks never see it. The Account screen
+   (avatar → Account → Notifications) carries the same offer.
 4. Review → confirm → home shows the plan.
 5. Anchor opens from the card; settings: pick the time of day whose hour
    comes next (anchor hours are server time, on the hour).
 6. Background the app (home button, not swipe-away is fine; either should
    work). At the top of that hour the anchor push appears on the lock
-   screen. Tap it → the anchor opens.
+   screen. Tap it → the anchor opens. (A push that lands while the app is
+   open shows as a banner instead; the first period's plan is built the
+   moment the review is confirmed, so that one usually arrives in the
+   foreground.)
 7. Delayed review push: set `ANALYSIS_EXPECTED_WINDOW_SECONDS=0`, `docker
    compose up -d`, link another institution and background the app during
    analysis → "Your financial review is ready." → tap → the review.
@@ -159,8 +191,11 @@ and fix anything that breaks in the repository that owns it.
   preview` shows `GOOGLE_SERVICES_JSON`, rebuild.
 - **Push token registers but nothing arrives**: the FCM V1 key is missing or
   for another Firebase project (`eas credentials -p android` shows what is
-  uploaded); or the phone's battery saver is deferring background delivery
-  — exempt FinBot in the phone's battery settings for the walk.
+  uploaded); or it sits under a previous package name (see step 2 — the
+  send ledger's `receipt_status` reads `error` and Expo's ticket says
+  `InvalidCredentials`); or the phone's battery saver is deferring
+  background delivery — exempt FinBot in the phone's battery settings for
+  the walk.
 - **Plaid Link fails to open with a message about the package name**: the
   API's `PLAID_ANDROID_PACKAGE_NAME` is unset (the API answers 503 with the
   variable's name) or the name is not in the Plaid dashboard's allowed list.
