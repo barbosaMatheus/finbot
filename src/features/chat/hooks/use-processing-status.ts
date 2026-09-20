@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 
 import { PROCESSING_STATUS_PHRASES } from '@/features/chat/constants/status-phrases';
 
-const MIN_INTERVAL_MS = 3_000;
-const MAX_INTERVAL_MS = 6_000;
+const MIN_INTERVAL_MS = 6_000;
+const MAX_INTERVAL_MS = 12_000;
 
 function randomIntervalMs(): number {
   return MIN_INTERVAL_MS + Math.floor(Math.random() * (MAX_INTERVAL_MS - MIN_INTERVAL_MS + 1));
@@ -11,7 +11,7 @@ function randomIntervalMs(): number {
 
 /**
  * While `active`, cycles through the processing status phrases, advancing to
- * the next phrase after a randomized 3–6s interval. Advances only from the
+ * the next phrase after a randomized 6–12s interval. Advances only from the
  * timer callback so the effect never synchronously sets state.
  */
 export function useProcessingStatus(active: boolean): string {

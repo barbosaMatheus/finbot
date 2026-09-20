@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 
 const DEFAULT_API_BASE_URL = 'http://localhost:3000';
-const DEFAULT_CHAT_MAX_CHARS = 128;
+const DEFAULT_CHAT_MAX_CHARS = 256;
 
 /**
  * Resolution order:
@@ -26,7 +26,7 @@ export function getApiBaseUrl(): string {
  *
  * Expo inlines EXPO_PUBLIC_* at bundle time; Docker Compose maps the top-level
  * CHAT_MAX_CHARS variable onto EXPO_PUBLIC_CHAT_MAX_CHARS (see
- * docker-compose.yml). Falls back to 128.
+ * docker-compose.yml). Falls back to 256.
  */
 export function getChatMaxChars(): number {
   const fromEnv = process.env.EXPO_PUBLIC_CHAT_MAX_CHARS?.trim();
