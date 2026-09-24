@@ -182,3 +182,69 @@ export function revokePushToken(tokenId: string): Promise<void> {
     method: 'DELETE',
   });
 }
+
+// ---------------------------------------------------------------------------
+// Gameplan: the anchor (one read per period, a few bounded actions)
+// ---------------------------------------------------------------------------
+
+export type Anchor = JsonResponse<operations['getAnchor'], 200>;
+export type AnchorPeriod = NonNullable<Anchor['period']>;
+export type AnchorPlan = NonNullable<Anchor['plan']>;
+export type AnchorTarget = AnchorPlan['targets'][number];
+export type TargetDefinition = AnchorTarget['definition'];
+export type AnchorGrade = NonNullable<Anchor['previousGrade']>;
+export type TargetResult = AnchorGrade['results'][number];
+export type AnchorSettings = Anchor['settings'];
+
+export type AcknowledgeResult = JsonResponse<operations['acknowledgeAnchor'], 200>;
+export type SwapRequest = JsonBody<operations['swapAnchorTarget']>;
+export type PlanChangeResult = JsonResponse<operations['swapAnchorTarget'], 200>;
+export type HeadsUpParseResult = JsonResponse<operations['parseHeadsUp'], 200>;
+export type HeadsUpRequest = JsonBody<operations['applyHeadsUp']>;
+export type HeadsUpResult = JsonResponse<operations['applyHeadsUp'], 200>;
+export type ReflectionRequest = JsonBody<operations['addReflection']>;
+export type ReflectionResult = JsonResponse<operations['addReflection'], 201>;
+export type AwarenessResult = JsonResponse<operations['completeAwareness'], 200>;
+export type AnchorSettingsUpdate = JsonBody<operations['updateAnchorSettings']>;
+export type AnchorSettingsResult = JsonResponse<operations['updateAnchorSettings'], 200>;
+
+export function getAnchor(): Promise<Anchor> {
+  return apiFetch<Anchor>('/gameplan/anchor');
+}
+
+export function acknowledgeAnchor(): Promise<AcknowledgeResult> {
+  return apiFetch<AcknowledgeResult>('/gameplan/anchor/got-it', { method: 'POST' });
+}
+
+export function swapAnchorTarget(body: SwapRequest): Promise<PlanChangeResult> {
+  return apiFetch<PlanChangeResult>('/gameplan/anchor/swap', { method: 'POST', json: body });
+}
+
+/** Heads-up step one: the line becomes a proposal; says whether the amount box follows. */
+export function parseHeadsUp(text: string): Promise<HeadsUpParseResult> {
+  return apiFetch<HeadsUpParseResult>('/gameplan/anchor/heads-up/parse', {
+    method: 'POST',
+    json: { text },
+  });
+}
+
+/** Heads-up step two: the record plus the confirmed amount (null when the box was skipped). */
+export function applyHeadsUp(body: HeadsUpRequest): Promise<HeadsUpResult> {
+  return apiFetch<HeadsUpResult>('/gameplan/anchor/heads-up', { method: 'POST', json: body });
+}
+
+export function addReflection(body: ReflectionRequest): Promise<ReflectionResult> {
+  return apiFetch<ReflectionResult>('/gameplan/anchor/reflection', { method: 'POST', json: body });
+}
+
+export function completeAwareness(): Promise<AwarenessResult> {
+  return apiFetch<AwarenessResult>('/gameplan/anchor/awareness-done', { method: 'POST' });
+}
+
+export function getAnchorSettings(): Promise<AnchorSettingsResult> {
+  return apiFetch<AnchorSettingsResult>('/gameplan/settings');
+}
+
+export function updateAnchorSettings(body: AnchorSettingsUpdate): Promise<AnchorSettingsResult> {
+  return apiFetch<AnchorSettingsResult>('/gameplan/settings', { method: 'PUT', json: body });
+}

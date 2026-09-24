@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { AuthProvider } from '@/features/auth/auth-context';
@@ -12,16 +12,37 @@ import {
   isLocationValidForPhase,
   routeForPhase,
 } from '@/features/onboarding-status/routing';
-import { usePushDeepLink } from '@/features/push/use-push-deep-link';
+import { pathForPushUrl, usePushDeepLink, type PushTapData } from '@/features/push/use-push-deep-link';
 
 function RootLayoutNav() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { status, isLoading: statusLoading, refresh } = useOnboardingStatus();
   const segments = useSegments();
   const router = useRouter();
+  const pendingPushPath = useRef<string | null>(null);
 
   // Push taps refetch status; the guard below routes from the fresh phase.
-  usePushDeepLink(refresh as unknown as () => void);
+  // A gameplan push also names a screen — the anchor, or chat for a nudge —
+  // which is opened once the phase confirms the user is past onboarding.
+  const onPushWake = useCallback(
+    (data: PushTapData) => {
+      pendingPushPath.current = pathForPushUrl(data.url);
+      void refresh();
+    },
+    [refresh],
+  );
+
+  usePushDeepLink(onPushWake);
+
+  useEffect(() => {
+    const target = pendingPushPath.current;
+    if (!target || !isAuthenticated || statusLoading || status?.phase !== 'complete') {
+      return;
+    }
+
+    pendingPushPath.current = null;
+    router.push(target as never);
+  }, [isAuthenticated, router, status, statusLoading]);
 
   useEffect(() => {
     if (authLoading) {

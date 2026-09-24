@@ -63,6 +63,12 @@ export function isLocationValidForPhase(
     return true;
   }
 
+  // The gameplan anchor exists only once onboarding is complete; it lives
+  // outside the tabs so a push deep link can land on it directly.
+  if (group === 'gameplan') {
+    return phase === 'complete';
+  }
+
   // Managing connections is always allowed while restricted (the design's
   // manage_connections action), except once complete.
   if (group === '(connect-bank)' && phase !== 'complete') {
