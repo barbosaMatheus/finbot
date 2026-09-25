@@ -1,0 +1,222 @@
+# Android build and the push walk
+
+How to get FinBot onto an Android phone the way a user would get it — an
+installable APK built in the cloud by EAS, push notifications through
+Firebase Cloud Messaging (FCM), Plaid Link through the native SDK, and the
+API reached over HTTPS — and what to check once it is there.
+
+No Apple developer account is involved. Expo Go cannot do this walk: it has
+neither Plaid's native module nor a push token of its own.
+
+## One-time setup
+
+### 1. Expo account
+
+```bash
+cd finbot
+npx eas-cli login
+npx eas-cli project:info      # must print the project behind app.json's projectId
+```
+
+If `project:info` says the project is not found or not yours, the id in
+`app.json` belongs to another account. Run `npx eas-cli init` to create one
+under yours; it rewrites `extra.eas.projectId`. Push tokens are scoped to the
+project id, so do this before the first build, not after.
+
+### 2. Firebase (FCM credentials)
+
+1. [Firebase console](https://console.firebase.google.com) → Add project
+   (Analytics off is fine).
+2. Add an **Android** app with package name `com.finbot.finbot`. Download
+   `google-services.json` into `finbot/`. It is git-ignored; `app.config.js`
+   picks it up from there for local builds.
+3. Project settings → Service accounts → **Generate new private key**. Save
+   the JSON somewhere outside the repo (it is a signing credential; the
+   `.gitignore` also blocks the usual `*firebase-adminsdk*.json` name).
+4. Hand the key to EAS, which sends the pushes:
+
+   ```bash
+   npx eas-cli credentials -p android
+   # → production (the credentials are per project, not per profile)
+   # → Google Service Account
+   # → Manage your Google Service Account Key for Push Notifications (FCM V1)
+   # → Set up a Google Service Account Key for Push Notifications (FCM V1)
+   # → Upload a new service account key → path to the JSON from step 3
+   ```
+
+   The key is attached to the **application identifier** (the Android
+   package name) that `app.json` carried at upload time. Rename the package
+   afterwards and the new identifier starts with no key: Expo's push API
+   then answers every send with `InvalidCredentials` ("Unable to retrieve
+   the FCM server key for the recipient's app"). Run `eas credentials`
+   again under the new package and pick the existing key rather than
+   uploading it twice.
+
+### 3. EAS environment variables
+
+EAS builds from an upload that honours `.gitignore`, so the git-ignored
+`google-services.json` has to travel as a *file* variable. The API address
+is inlined into the bundle at build time, so it travels as a plain one.
+
+```bash
+cd finbot
+npx eas-cli env:set --scope project --type file --visibility secret \
+  --environment development --environment preview --environment production \
+  --name GOOGLE_SERVICES_JSON --value ./google-services.json
+
+npx eas-cli env:set --scope project --type string --visibility plaintext \
+  --environment preview \
+  --name EXPO_PUBLIC_API_BASE_URL --value https://<your-tunnel-host>
+```
+
+`eas.json` ties each build profile to the environment of the same name.
+`app.config.js` reads `GOOGLE_SERVICES_JSON` (a path on the build machine)
+and falls back to the local file.
+
+### 4. Plaid dashboard
+
+<https://dashboard.plaid.com/developers/api> (left nav: Developers → API) →
+**Allowed Android package names** → Configure → Add New Android Package
+Name → `com.finbot.finbot`. This is a team-wide setting, available on a
+Sandbox-only account. Plaid requires the package name on every Android
+Link token and rejects names it has not seen. The API sends it when the
+client says `platform: "android"` and `PLAID_ANDROID_PACKAGE_NAME` is set
+(see below); web and iOS tokens never carry it.
+
+### 5. A public HTTPS address for the API
+
+A release-style Android build refuses plain HTTP, and the phone is not on
+`localhost`. Cheapest option: an ngrok tunnel to the laptop. A free ngrok
+account gives one static domain, so the address survives restarts.
+
+```bash
+ngrok http --domain=<your-static-domain>.ngrok-free.dev 3000
+```
+
+Leave it running for as long as the phone needs the API. The same address
+serves Plaid webhooks.
+
+## Each time
+
+### Start the stack for the phone
+
+In `finbot-app/.env`:
+
+```
+PLAID_WEBHOOK_URL=https://<your-tunnel-host>/plaid/webhook
+PLAID_ANDROID_PACKAGE_NAME=com.finbot.finbot
+```
+
+Then `docker compose up -d` (add `--profile llm` if a model host is in use).
+Changed values recreate only the containers that read them.
+
+### Build and install
+
+```bash
+cd finbot
+npx eas-cli build -p android --profile preview
+```
+
+Ten to twenty minutes on the free tier. The build page ends with an APK
+link and a QR code; open it on the phone, allow installs from that source
+when Android asks, install. A phone with no SIM on Wi-Fi is enough.
+
+No phone? The Android Studio emulator does the whole walk, push included,
+as long as the virtual device uses a **Google Play** system image (the one
+with the Play Store icon in the device manager — "Google APIs" and plain
+images have no Firebase messaging). Download the APK on the laptop and drag
+it onto the emulator window, or `adb install finbot.apk`. The power button
+in the emulator toolbar locks the screen for the lock-screen check.
+
+Emulator notes from the first walk (2026-09-07, Android 16 Play image):
+
+- If Android Studio's first-run wizard never ran there is no SDK; the
+  command-line tools install one headlessly (`platform-tools`, `emulator`,
+  `platforms;android-36`, `system-images;android-36;google_apis_playstore;x86_64`).
+  Call the tools' Java classes directly when the user or Java path has a
+  space — the `.bat` wrappers break on it.
+- Keep the screen awake while driving it (`adb shell svc power stayon true`);
+  taps on a sleeping display look like a dead app.
+- A force-stopped app (`am force-stop`, or Settings → Force stop) receives
+  no FCM at all until it is launched again — that is Android, not FinBot.
+  Kill it from Recents or with `am kill` for the cold-start check.
+- With the emulator's hardware keyboard on, Gboard appends a character to a
+  **password** field when a button blurs it (a trailing space in Link's
+  form, a duplicate in ours). Tap another text field before the button, or
+  type passwords on the on-screen keyboard.
+
+A preview build carries its JavaScript inside the APK, so any change —
+native or JavaScript — means another build. For a tighter loop the
+`development` profile produces a dev client that loads JavaScript from
+Metro on the laptop and only needs rebuilding when native configuration
+changes (a plugin, a dependency with native code, `app.json`).
+
+## The walk
+
+In order. Each line is one thing to see.
+
+1. Sign up (a fresh email), log in.
+2. Onboarding → connect a bank → Plaid Link opens **inside the app** (not a
+   browser tab) → First Platypus Bank → `user_good` / `pass_good` → back in
+   the app with the institution listed.
+3. Allow notifications when asked (Android 13+ shows the system prompt).
+   The offer lives on the waiting screen, which only shows while the first
+   analysis is still running after the profile questions — on Sandbox that
+   analysis takes seconds, so most walks never see it. The Account screen
+   (avatar → Account → Notifications) carries the same offer.
+4. Review → confirm → home shows the plan.
+5. Anchor opens from the card; settings: pick the time of day whose hour
+   comes next (anchor hours are server time, on the hour).
+6. Background the app (home button, not swipe-away is fine; either should
+   work). At the top of that hour the anchor push appears on the lock
+   screen. Tap it → the anchor opens. (A push that lands while the app is
+   open shows as a banner instead; the first period's plan is built the
+   moment the review is confirmed, so that one usually arrives in the
+   foreground.)
+7. Delayed review push: set `ANALYSIS_EXPECTED_WINDOW_SECONDS=0`, `docker
+   compose up -d`, link another institution and background the app during
+   analysis → "Your financial review is ready." → tap → the review.
+8. Kill the app and relaunch: still logged in (tokens live in SecureStore).
+
+If waiting for the hour is too slow, a throwaway script run inside the api
+container can call `sendGameplanPush` for the user; delete it afterwards.
+
+Record the result in `docs/onboarding-verification.md` (device section)
+and fix anything that breaks in the repository that owns it.
+
+## When something is off
+
+- **"Default FirebaseApp is not initialized"** at the notifications step:
+  the build had no `google-services.json`. Check `eas env:list --environment
+  preview` shows `GOOGLE_SERVICES_JSON`, rebuild.
+- **Push token registers but nothing arrives**: the FCM V1 key is missing or
+  for another Firebase project (`eas credentials -p android` shows what is
+  uploaded); or it sits under a previous package name (see step 2 — the
+  send ledger's `receipt_status` reads `error` and Expo's ticket says
+  `InvalidCredentials`); or the phone's battery saver is deferring
+  background delivery — exempt FinBot in the phone's battery settings for
+  the walk.
+- **Plaid Link fails to open with a message about the package name**: the
+  API's `PLAID_ANDROID_PACKAGE_NAME` is unset (the API answers 503 with the
+  variable's name) or the name is not in the Plaid dashboard's allowed list.
+- **Requests fail on the phone but work in the browser**: the tunnel is
+  down, or the APK was built with a different `EXPO_PUBLIC_API_BASE_URL`
+  (`eas env:list --environment preview`). ngrok's free tier shows a warning
+  page only to browsers; the app's requests pass.
+- **Plain-HTTP address unavoidable** (a LAN IP with no tunnel): add
+  `android.usesCleartextTraffic: true` to the `expo-build-properties`
+  entry in `app.json` and rebuild. Prefer the tunnel.
+- **Manifest merger: minSdkVersion … cannot be smaller than …** on a fresh
+  branch: a native dependency raised its floor. Raise
+  `android.minSdkVersion` in the `expo-build-properties` entry (Plaid's SDK
+  6.1 needs 26, which is why the entry exists).
+- **`expo start` in the web container fails to resolve a plugin** after
+  pulling a branch that added one: `docker compose exec web npm install`.
+  The container's `node_modules` is a named volume and does not follow
+  `package.json` on its own.
+
+## Out of scope here
+
+iOS (an Apple developer account and an APNs key through the same
+`eas credentials` flow; the app code path is shared), Play Store
+distribution, and a real host for the API instead of the tunnel.
