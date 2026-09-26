@@ -18,6 +18,21 @@ const PUSH_TOKEN_ID_KEY = 'finbot.pushTokenId';
 
 export const pushSupported = Platform.OS === 'ios' || Platform.OS === 'android';
 
+// A push that lands while the app is open shows nothing unless a handler
+// says otherwise. The anchor push at period open is the case that bit: the
+// plan is built the moment the review is confirmed, while the user is still
+// looking at the app. Banner and list, no sound — a plan is not an alarm.
+if (pushSupported) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    }),
+  });
+}
+
 export type PushRegistrationResult =
   | { status: 'registered' }
   | { status: 'denied' }

@@ -953,6 +953,8 @@ export interface operations {
                     mode?: "add" | "update";
                     /** Format: uuid */
                     itemId?: string;
+                    /** @enum {string} */
+                    platform?: "web" | "ios" | "android";
                 };
             };
         };

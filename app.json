@@ -9,7 +9,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.finbotpbd.finbot"
+      "bundleIdentifier": "com.finbot.finbot"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +19,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.finbotpbd.finbot"
+      "package": "com.finbot.finbot"
     },
     "web": {
       "output": "static",
@@ -36,6 +36,22 @@
             "imageWidth": 76
           }
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "color": "#208AEF",
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
       ]
     ],
     "experiments": {
@@ -46,8 +62,9 @@
       "router": {},
       "apiBaseUrl": "http://localhost:3000",
       "eas": {
-        "projectId": "2058e7c3-3984-417a-a83c-3a6b88faebf2"
+        "projectId": "b38f0508-bbd6-40c6-9eb9-ba5ca3e5cd78"
       }
-    }
+    },
+    "owner": "finbot.ai"
   }
 }

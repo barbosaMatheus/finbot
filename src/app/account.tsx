@@ -7,6 +7,8 @@ import { ThemedView } from '@/components/themed-view';
 import { UserAvatar } from '@/components/user-avatar';
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 import { useAuth } from '@/features/auth/use-auth';
+import { EnablePushRow } from '@/features/push/components/enable-push-row';
+import { pushSupported } from '@/features/push/push-registration';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function AccountScreen() {
@@ -49,6 +51,16 @@ export default function AccountScreen() {
               Payday or a day you pick, and the time of day.
             </ThemedText>
           </Pressable>
+
+          {pushSupported ? (
+            <ThemedView style={[styles.row, { backgroundColor: theme.backgroundElement }]}>
+              <ThemedText type="smallBold">Notifications</ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                Your plan, your grade and the occasional heads-up, on this phone.
+              </ThemedText>
+              <EnablePushRow label="Turn on notifications" registeredCopy="On for this phone." />
+            </ThemedView>
+          ) : null}
 
           <ThemedView style={styles.spacer} />
 
