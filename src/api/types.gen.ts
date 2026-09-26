@@ -970,6 +970,8 @@ export interface operations {
                     mode?: "add" | "update";
                     /** Format: uuid */
                     itemId?: string;
+                    /** @enum {string} */
+                    platform?: "web" | "ios" | "android";
                 };
             };
         };
@@ -4579,6 +4581,21 @@ export interface operations {
             };
             /** @description Model request failed */
             502: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        code?: string;
+                        details?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description No model configured: set LLM_PROVIDER to ollama or anthropic */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
