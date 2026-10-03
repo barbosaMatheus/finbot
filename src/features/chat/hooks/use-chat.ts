@@ -1,24 +1,28 @@
 import { useCallback, useState } from 'react';
 
-import {
-  DUMMY_ASSISTANT_REPLIES,
-  INITIAL_CHAT_MESSAGES,
-} from '@/features/chat/constants/dummy-replies';
+import { chatPrompt } from '@/api/client';
+import { INITIAL_CHAT_MESSAGES } from '@/features/chat/constants/initial-messages';
 import type { ChatMessage } from '@/features/chat/types/chat';
+import { getChatMaxChars } from '@/lib/config';
 
 function createMessageId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-export function useChat() {
+type UseChatOptions = {
+  /** The authenticated user the model answers from. */
+  userId: string;
+};
+
+export function useChat({ userId }: UseChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_CHAT_MESSAGES);
   const [draft, setDraft] = useState('');
   const [isReplying, setIsReplying] = useState(false);
 
-  const sendMessage = useCallback(() => {
-    const content = draft.trim();
+  const sendMessage = useCallback(async () => {
+    const content = draft.trim().slice(0, getChatMaxChars());
 
-    if (!content || isReplying) {
+    if (!content || isReplying || !userId) {
       return;
     }
 
@@ -32,22 +36,34 @@ export function useChat() {
     setDraft('');
     setIsReplying(true);
 
-    const reply =
-      DUMMY_ASSISTANT_REPLIES[Math.floor(Math.random() * DUMMY_ASSISTANT_REPLIES.length)];
+    try {
+      const { response } = await chatPrompt({
+        userId,
+        userPromptText: content,
+      });
 
-    // Simulate a short assistant latency for the dummy chat.
-    setTimeout(() => {
       setMessages((current) => [
         ...current,
         {
           id: createMessageId(),
           role: 'assistant',
-          content: reply,
+          content: response,
         },
       ]);
+    } catch {
+      setMessages((current) => [
+        ...current,
+        {
+          id: createMessageId(),
+          role: 'assistant',
+          content:
+            'Sorry, I could not get a response just now. Please try again in a moment.',
+        },
+      ]);
+    } finally {
       setIsReplying(false);
-    }, 600);
-  }, [draft, isReplying]);
+    }
+  }, [draft, isReplying, userId]);
 
   return {
     messages,

@@ -4,10 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
+import { useAuth } from '@/features/auth/use-auth';
 import { ChatComposer } from '@/features/chat/components/chat-composer';
 import { ChatMessageList } from '@/features/chat/components/chat-message-list';
 import { useChat } from '@/features/chat/hooks/use-chat';
+import { useProcessingStatus } from '@/features/chat/hooks/use-processing-status';
 import { useTheme } from '@/hooks/use-theme';
+import { getChatMaxChars } from '@/lib/config';
 
 type ChatWindowProps = {
   /** One line of context the route composes in — the current plan, when there is one. */
@@ -16,7 +19,11 @@ type ChatWindowProps = {
 
 export function ChatWindow({ contextLine }: ChatWindowProps) {
   const theme = useTheme();
-  const { messages, draft, isReplying, setDraft, sendMessage } = useChat();
+  const { user } = useAuth();
+  const { messages, draft, isReplying, setDraft, sendMessage } = useChat({
+    userId: user?.id ?? '',
+  });
+  const status = useProcessingStatus(isReplying);
 
   return (
     <ThemedView style={styles.container}>
@@ -24,15 +31,16 @@ export function ChatWindow({ contextLine }: ChatWindowProps) {
         <ThemedView style={[styles.header, { borderBottomColor: theme.backgroundSelected }]}>
           <ThemedText type="smallBold">FinBot Chat</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            {contextLine ?? 'Preview mode'}
+            {contextLine ?? 'Live assistant'}
           </ThemedText>
         </ThemedView>
 
-        <ChatMessageList messages={messages} />
+        <ChatMessageList isReplying={isReplying} messages={messages} status={status} />
         <ChatComposer
           disabled={isReplying}
+          maxLength={getChatMaxChars()}
           onChangeText={setDraft}
-          onSend={sendMessage}
+          onSend={() => void sendMessage()}
           value={draft}
         />
       </SafeAreaView>

@@ -73,6 +73,9 @@ export type RegisteredPushToken = JsonResponse<
   201
 >['token'];
 
+export type ChatPromptRequest = JsonBody<operations['chatPrompt']>;
+export type ChatPromptResponse = JsonResponse<operations['chatPrompt'], 200>;
+
 // ---------------------------------------------------------------------------
 // Endpoints
 // ---------------------------------------------------------------------------
@@ -247,4 +250,11 @@ export function getAnchorSettings(): Promise<AnchorSettingsResult> {
 
 export function updateAnchorSettings(body: AnchorSettingsUpdate): Promise<AnchorSettingsResult> {
   return apiFetch<AnchorSettingsResult>('/gameplan/settings', { method: 'PUT', json: body });
+}
+
+export function chatPrompt(request: ChatPromptRequest): Promise<ChatPromptResponse> {
+  return apiFetch<ChatPromptResponse>('/chat-prompt', {
+    method: 'POST',
+    json: request,
+  });
 }
